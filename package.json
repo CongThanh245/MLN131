@@ -1,0 +1,26 @@
+{
+  "name": "vnr202-co-ngua-v2",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/engine.test.ts tests/teams.test.ts",
+    "e2e": "node e2e/simulate.cjs",
+    "supabase:check": "node --env-file=.env.local --experimental-strip-types scripts/check-supabase.ts"
+  },
+  "dependencies": {
+    "next": "16.3.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.7.2"
+  }
+}
