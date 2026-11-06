@@ -37,8 +37,8 @@ function ringOf(arms: number): RingCell[] {
 }
 const lanePoint = (arm: number, arms: number, j: number): [number, number] => pt(arm, arms, U0 + (ARM_LEN - 1) * PITCH - (j - 1) * PITCH, 0);
 
-/** The stable pad sits in the gap clockwise of the team's arm. */
-const stableAngle = (seat: number, arms: number): number => armAngle(seat, arms) + Math.PI / arms;
+/** The stable pad sits straight out from the team's own arm, just past its ★ start cell, so colours line up. */
+const stableAngle = (seat: number, arms: number): number => armAngle(seat, arms);
 export function stableCenter(seat: number, arms = DEFAULT_ARMS): [number, number] {
   const a = stableAngle(seat, arms);
   return [C + STABLE_R * Math.sin(a), C - STABLE_R * Math.cos(a)];
@@ -169,7 +169,8 @@ export function Board({ teams, fx, center, highlight, onPickHorse, arms = DEFAUL
           {teams.map((t) => {
             const [cx, cy] = stableCenter(t.seat, arms);
             const dir = (() => { const a = stableAngle(t.seat, arms); return [Math.sin(a), -Math.cos(a)]; })();
-            const inward = [cx - 66 * dir[0], cy - 66 * dir[1]];
+            // Card pile beside the pad (clockwise side) so it never covers the ★ start cell in front of it.
+            const inward = [cx - 92 * dir[1], cy + 92 * dir[0]];
             const outward = [cx + 50 * dir[0], cy + 50 * dir[1]];
             return (
               <div key={`tc${t.teamId}`}>
