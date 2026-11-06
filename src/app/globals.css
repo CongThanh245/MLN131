@@ -164,7 +164,7 @@ input:not([type=range]) { width:100%; border:1px solid #cbd4c9; background:#fffe
 .hub-center { position:absolute; left:50%; top:50%; transform:translate(-50%,-52%) rotateX(calc(var(--tilt) * -1)); transform-origin:50% 100%; pointer-events:none; }
 .hub-center .die { width:50px; height:50px; box-shadow:0 8px 14px #0006; }
 
-.tray { display:grid; grid-template-columns:130px 1fr 150px; gap:10px; margin-top:26px; position:relative; z-index:3; }
+.tray { display:grid; grid-template-columns:110px 1.25fr 1fr 130px; gap:10px; margin-top:26px; position:relative; z-index:3; }
 .tray-slot { background:#ffffffd9; border:2px dashed #7fb4d6; border-radius:14px; padding:8px 10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:130px; text-align:center; }
 .tray-label { font-size:10px; font-weight:800; letter-spacing:1px; color:var(--green); }
 .deck-pile { position:relative; width:46px; height:64px; } .deck-pile .card-back { position:absolute; left:calc(var(--i) * 3px); top:calc(var(--i) * -3px); width:44px; height:62px; }
@@ -233,3 +233,49 @@ code { background:var(--green-soft); padding:1px 6px; border-radius:5px; }
 .move-option:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 16px #0003; background:color-mix(in srgb,var(--c) 22%,#fff); }
 .pawn.selectable { cursor:pointer; animation:pawn-hop .6s ease-in-out infinite; z-index:1400!important; } .pawn.selectable .horse-svg { filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 12px var(--c)); }
 .pawn.selectable::after { content:"👆"; position:absolute; left:50%; top:-40%; transform:translateX(-50%); font-size:22px; }
+
+/* ---- result popup (everyone sees each turn's verdict) ---- */
+.pop-backdrop { position:absolute; inset:0; z-index:40; border-radius:inherit; display:grid; place-items:center; background:#1c2b2366; backdrop-filter:blur(2px); animation:reveal-in .25s; padding:16px; }
+.result-pop { --v:#2f8f5b; position:relative; width:min(540px,100%); max-height:100%; overflow:auto; background:#fffdf8; border-radius:22px; border:4px solid var(--v); box-shadow:0 30px 70px #0007; padding:22px 24px 18px; display:flex; flex-direction:column; gap:12px; animation:pop-in .45s cubic-bezier(.2,1.3,.3,1); }
+.result-pop.is-wrong { --v:#c8402f; } .result-pop.is-timeout { --v:#b07a1c; }
+.pop-verdict { display:flex; align-items:center; justify-content:center; gap:12px; font-size:40px; font-weight:900; letter-spacing:1px; color:var(--v); }
+.pop-verdict span { font-size:46px; }
+.pop-who { text-align:center; margin:0; font-size:15px; }
+.pop-qa { background:#f6f1e4; border-radius:14px; padding:12px 14px; display:flex; flex-direction:column; gap:6px; }
+.pop-q { margin:0; font-weight:700; }
+.pop-ans { margin:0; padding:7px 10px; border-radius:10px; font-size:15px; }
+.pop-ans.pop-good { background:#dff3e6; color:#1d6b40; border:1.5px solid #8fd0aa; }
+.pop-ans.pop-bad { background:#fbe3df; color:#9c2b1f; border:1.5px solid #eba79c; text-decoration:none; }
+.pop-explain { margin:0; font-size:13px; color:#5d6b63; } .pop-explain span { opacity:.75; }
+.pop-effect { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+.pop-effect > span { background:#fff; border:1.5px solid #e4dbc5; border-radius:999px; padding:6px 12px; font-size:14px; }
+.result-pop .btn { align-self:center; min-width:140px; }
+.pop-timer { position:absolute; left:0; bottom:0; height:5px; background:var(--v); animation:pop-timer 7s linear forwards; }
+@keyframes pop-in { from { transform:scale(.6) translateY(30px); opacity:0; } }
+@keyframes pop-timer { from { width:100%; } to { width:0; } }
+.verdict-bar { margin:0 0 6px; padding:8px 12px; border-radius:10px; background:#dff3e6; color:#1d6b40; font-weight:800; border:1.5px solid #8fd0aa; }
+
+/* ---- skill card guidance ---- */
+.card-reason { margin-top:auto; padding:5px 8px; font-size:10.5px; font-weight:700; line-height:1.25; background:#eee6d6; color:#6f5f45; text-align:center; }
+.card-reason.ok { background:#2f8f5b; color:#fff; }
+.game-card.big .card-reason { display:none; }
+.card-status { margin:4px 0 8px; padding:8px 12px; border-radius:10px; background:#f3efe4; font-size:13.5px; }
+.card-status.now { background:#fff1c9; border:1.5px solid #e8c35a; font-weight:700; animation:pulse-soft 1.6s ease-in-out infinite; }
+@keyframes pulse-soft { 50% { box-shadow:0 0 0 5px #e8c35a33; } }
+.card-howto { margin:0 0 8px; font-size:13px; } .card-howto summary { cursor:pointer; font-weight:700; color:#285e4d; }
+.card-howto ol { margin:6px 0 0; padding-left:20px; display:flex; flex-direction:column; gap:4px; }
+.card-now { margin:8px 0; padding:8px 12px; border-radius:10px; background:#fff6dc; border:1.5px dashed #e3bf62; font-size:13.5px; display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+
+/* ---- turn steps ---- */
+.steps { list-style:none; display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:10px 0 12px; padding:0; }
+.steps li { display:flex; align-items:center; gap:6px; padding:7px 8px; border-radius:10px; background:#f1ece0; color:#8a8170; font-size:12px; font-weight:700; line-height:1.2; }
+.steps li b { display:grid; place-items:center; flex:none; width:20px; height:20px; border-radius:50%; background:#d9cfb9; color:#fff; font-size:11px; }
+.steps li.done { background:#e3f1e8; color:#2c7a4f; } .steps li.done b { background:#2f8f5b; }
+.steps li.now { background:#fff1c9; color:#6b4b07; box-shadow:0 0 0 2px #e8c35a inset; } .steps li.now b { background:#d79b13; }
+.turn-todo { margin:2px 0 0; font-size:14px; font-weight:600; color:#4a5a51; }
+
+.card-now { display:block; line-height:1.55; } .card-now .btn { margin:4px 6px 0 0; }
+.card-when { background:#f3ecdd; color:#5b4a2c; font-size:10.5px; font-weight:800; padding:4px 9px; border-bottom:1px solid #e6dcc6; }
+.game-card.big .card-when { font-size:13px; }
+.how-move { display:block; text-align:left; line-height:1.45; font-size:12px; color:#4a5a51; }
+.game-card > span { align-self:stretch; } .card-art { width:auto; }

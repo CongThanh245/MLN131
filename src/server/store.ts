@@ -13,7 +13,7 @@ import { supabase } from './supabase';
 const ROOMS = 'cangua_rooms';
 const PRESENCE = 'cangua_presence';
 export const ROOM_TTL_MS = 12 * 60 * 60 * 1000;
-const PRESENCE_WRITE_MS = 5_000;
+const PRESENCE_WRITE_MS = 3_000;
 const RETRIES = 6;
 
 interface Row { code: string; body: RoomRecord; version: number }
@@ -25,16 +25,41 @@ const normalize = (code: string): string => {
   return c;
 };
 
+/**
+ * Presence is timed with the database clock (migration 002) so web servers whose clocks disagree
+ * (a laptop running `next dev` beside Vercel) still agree on who is online. Until 002 is applied
+ * we fall back to writing this server's own time into the table.
+ */
+let dbClock = true;
+const missingFunction = (e: unknown): boolean => e instanceof HttpError && /PGRST202|42883|\(404\)/.test(e.message);
+
+/** When each player of a room was last seen, converted to this server's clock. */
+async function presenceOf(code: string): Promise<Map<string, number>> {
+  const now = Date.now();
+  if (dbClock) {
+    try {
+      const rows = await supabase<{ player_id: string; age_ms: number }[]>('rpc/cangua_presence_ages', { method: 'POST', body: JSON.stringify({ p_code: code }) });
+      return new Map(rows.map((r) => [r.player_id, now - Number(r.age_ms)]));
+    } catch (e) {
+      if (!missingFunction(e)) throw e;
+      dbClock = false;
+    }
+  }
+  const rows = await supabase<{ player_id: string; last_seen: number }[]>(`${PRESENCE}?code=eq.${code}&select=player_id,last_seen`);
+  return new Map(rows.map((r) => [r.player_id, Math.min(now, Number(r.last_seen))]));
+}
+
 async function load(code: string): Promise<Loaded> {
   const c = normalize(code);
-  const [rows, presence] = await Promise.all([
+  const [rows, seen] = await Promise.all([
     supabase<Row[]>(`${ROOMS}?code=eq.${c}&select=code,body,version&limit=1`),
-    supabase<{ player_id: string; last_seen: number }[]>(`${PRESENCE}?code=eq.${c}&select=player_id,last_seen`)
+    presenceOf(c)
   ]);
   const row = rows[0];
-  if (!row || row.body.createdAt < Date.now() - ROOM_TTL_MS) throw new HttpError(404, 'Không tìm thấy phòng. Kiểm tra lại mã phòng.');
-  const seen = new Map(presence.map((p) => [p.player_id, Number(p.last_seen)]));
-  for (const p of row.body.players) p.lastSeen = Math.max(p.lastSeen, seen.get(p.id) ?? 0);
+  const now = Date.now();
+  if (!row || row.body.createdAt < now - ROOM_TTL_MS) throw new HttpError(404, 'Không tìm thấy phòng. Kiểm tra lại mã phòng.');
+  // The presence table is the source of truth; the copy saved in the room body may come from another server's clock.
+  for (const p of row.body.players) p.lastSeen = seen.get(p.id) ?? Math.min(now, p.lastSeen);
   return { room: row.body, version: Number(row.version), seen };
 }
 
@@ -50,10 +75,16 @@ async function save(room: RoomRecord, version: number): Promise<boolean> {
 async function touch(code: string, playerId: string, seen: Map<string, number>): Promise<void> {
   const now = Date.now();
   if (now - (seen.get(playerId) ?? 0) < PRESENCE_WRITE_MS) return;
-  await supabase(`${PRESENCE}?on_conflict=code,player_id`, {
-    method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({ code, player_id: playerId, last_seen: now })
-  }).catch(() => undefined); // presence is best effort
+  try {
+    if (dbClock) await supabase('rpc/cangua_touch', { method: 'POST', body: JSON.stringify({ p_code: code, p_player: playerId }) });
+    else await supabase(`${PRESENCE}?on_conflict=code,player_id`, {
+      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ code, player_id: playerId, last_seen: now })
+    });
+  } catch (e) {
+    if (dbClock && missingFunction(e)) { dbClock = false; return touch(code, playerId, seen); }
+    // presence is best effort
+  }
 }
 
 /**

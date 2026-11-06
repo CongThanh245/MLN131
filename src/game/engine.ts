@@ -267,8 +267,9 @@ function onAnswer(s: GameState, now: number, rng: Rng, bank: Question[], picked:
     gained = card.kind;
     if (team.hand.length > HAND_MAX) s.skillDiscard.push(team.hand.shift()!);
   }
-  const options = moveOptions(s, team);
-  s.pending = { outcome, picked, gained, questionText: active.text, correctText: q.correct, explain: q.explain, ref: q.ref, options };
+  // Only a correct answer earns the move: a wrong answer or no answer leaves every horse where it is.
+  const options = outcome === 'correct' ? moveOptions(s, team) : [];
+  s.pending = { outcome, picked, pickedText: picked === null ? null : active.options[picked], gained, questionText: active.text, correctText: q.correct, explain: q.explain, ref: q.ref, options };
   s.question = null;
   if (options.length <= 1) { applyMove(s, now, options[0] ?? null); return; }
   s.phase = 'move';
@@ -296,17 +297,19 @@ function applyMove(s: GameState, now: number, option: MoveOption | null): void {
     }
   }
   const reachedHome = !!option && option.home;
-  const bonus = dice[0] === dice[1] || kicked.length > 0 || reachedHome;
+  const stayed = p.outcome !== 'correct';
+  const bonus = !stayed && (dice[0] === dice[1] || kicked.length > 0 || reachedHome);
   s.resolution = {
     id: s.turnNumber, teamId: team.teamId, memberId: member.id, memberName: member.name, dice,
     horseId: horse?.id ?? null, horseName: horse?.name ?? null, steps: option ? option.to - option.from : 0,
     from: option?.from ?? 0, to: option?.to ?? 0, exited: option?.kind === 'exit', kicked, bonus,
-    picked: p.picked, outcome: p.outcome, questionText: p.questionText, correctText: p.correctText, explain: p.explain, ref: p.ref,
+    picked: p.picked, pickedText: p.pickedText, outcome: p.outcome, questionText: p.questionText, correctText: p.correctText, explain: p.explain, ref: p.ref,
     gained: p.gained, capped: !!option?.capped, boost: option?.kind === 'advance' ? boost : 0
   };
 
   const verdict = p.outcome === 'correct' ? 'trả lời đúng' : p.outcome === 'wrong' ? 'trả lời sai' : 'hết giờ';
-  const move = !option ? 'không có ngựa nào đi được (cần ' + s.exitRolls.join(' hoặc ') + ' để xuất chuồng)'
+  const move = stayed ? 'ngựa đứng yên'
+    : !option ? 'không có ngựa nào đi được (cần ' + s.exitRolls.join(' hoặc ') + ' để xuất chuồng)'
     : option.kind === 'exit' ? `${horse!.name} xuất chuồng`
     : `${horse!.name} tiến ${option.to - option.from} bước${option.capped ? ' (bị Thuế Khóa giới hạn)' : ''}`;
   log(s, now, 'move', `(${member.name}) ${verdict}, ${move}.`, team.teamId);

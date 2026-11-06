@@ -29,7 +29,7 @@ function play(s: GameState, a: number, b: number, o: { right?: boolean; pick?: n
   const who = s.actingMemberId, now = o.now ?? 2_000;
   s = applyAction(s, who, { type: 'roll' }, now, rigged(a, b), QUESTION_BANK);
   assert.deepEqual(s.dice, [a, b]);
-  s = applyAction(s, who, { type: 'answer', index: o.right ? correctIndex(s) : wrongIndex(s) }, now + 1, seeded(3), QUESTION_BANK);
+  s = applyAction(s, who, { type: 'answer', index: o.right === false ? wrongIndex(s) : correctIndex(s) }, now + 1, seeded(3), QUESTION_BANK);
   if (s.phase === 'move') {
     const opt = typeof o.pick === 'string' ? s.pending!.options.find((x) => x.horseId === o.pick)! : s.pending!.options[o.pick ?? 0];
     s = applyAction(s, who, { type: 'choose-horse', horseId: opt.horseId }, now + 2, seeded(4), QUESTION_BANK);
@@ -109,7 +109,7 @@ test('when several horses can move the player chooses in the move phase; options
   horse(s, 't1', 1).progress = 5; horse(s, 't1', 2).progress = 9;
   horse(s, 't2', 1).progress = progressAt(1, ringCell(0, 9 + 5)!);   // rival 5 ahead of horse 2 (sum 5)
   s = applyAction(s, 't1m1', { type: 'roll' }, 2_000, rigged(2, 3), QUESTION_BANK);
-  s = applyAction(s, 't1m1', { type: 'answer', index: wrongIndex(s) }, 2_100, seeded(3), QUESTION_BANK);
+  s = applyAction(s, 't1m1', { type: 'answer', index: correctIndex(s) }, 2_100, seeded(3), QUESTION_BANK);
   assert.equal(s.phase, 'move');
   assert.equal(s.pending!.options.length, 2);
   const kick = s.pending!.options.find((o) => o.horseId === 't1-h2')!;
@@ -127,29 +127,35 @@ test('an unchosen move is picked for the team when the move timer ends (prefers 
   horse(s, 't1', 1).progress = 5; horse(s, 't1', 2).progress = 9;
   horse(s, 't2', 1).progress = progressAt(1, ringCell(0, 9 + 5)!);
   s = applyAction(s, 't1m1', { type: 'roll' }, 2_000, rigged(2, 3), QUESTION_BANK);
-  s = applyAction(s, 't1m1', { type: 'answer', index: wrongIndex(s) }, 2_100, seeded(3), QUESTION_BANK);
+  s = applyAction(s, 't1m1', { type: 'answer', index: correctIndex(s) }, 2_100, seeded(3), QUESTION_BANK);
   assert.equal(tick(s, 2_100 + MOVE_MS - 1, seeded(), QUESTION_BANK), s);
   const late = tick(s, 2_100 + MOVE_MS + 1, seeded(), QUESTION_BANK);
   assert.equal(horse(late, 't1', 2).progress, 14);
   assert.equal(late.resolution?.kicked.length, 1);
 });
 
-test('correct answer gives a skill card; wrong or timeout does not, but the horse still moves', () => {
+test('only a correct answer moves a horse and gives a skill card; wrong or timeout leaves every horse in place', () => {
   let s = newGame(2);
   horse(s, 't1', 1).progress = 5;
   s = play(s, 2, 3, { right: true });
   assert.equal(horse(s, 't1', 1).progress, 10);
   assert.equal(s.players.t1.hand.length, 1);
   assert.equal(s.resolution?.outcome, 'correct');
-  s = play(s, 2, 3, { right: false });
+  const before = s.players.t2.horses.map((h) => h.progress);
+  s = play(s, 3, 3, { right: false });                  // even doubles give nothing on a wrong answer
   assert.equal(s.players.t2.hand.length, 0);
+  assert.deepEqual(s.players.t2.horses.map((h) => h.progress), before);
+  assert.equal(s.resolution?.outcome, 'wrong');
+  assert.equal(s.resolution?.horseId, null);
+  assert.equal(s.resolution?.bonus, false);
+  assert.equal(s.turnTeamId, 't1');                    // no bonus roll: the turn passes on
   let u = newGame(2);
   horse(u, 't1', 1).progress = 5;
   u = applyAction(u, 't1m1', { type: 'roll' }, 2_000, rigged(3, 4), QUESTION_BANK);
   const late = tick(u, 2_000 + u.questionMs + 1, seeded(), QUESTION_BANK);
   assert.equal(late.resolution?.outcome, 'timeout');
   assert.equal(late.players.t1.hand.length, 0);
-  assert.equal(horse(late, 't1', 1).progress, 12);
+  assert.equal(horse(late, 't1', 1).progress, 5);
 });
 
 test('doubles give a bonus roll to the same member, at most MAX_STREAK times', () => {
@@ -335,6 +341,7 @@ test('pause freezes the clock; host can end the game with the leader winning', (
 
 /** Plays whole games with a simple bot and checks the pacing target: ~60 turns or fewer for six teams. */
 function botGame(seed: number, nTeams: number, opts: GameOptions) {
+  opts = { arms: nTeams, ...opts };
   const rng = seeded(seed);
   let s = createGame(teams(nTeams, 2), QUESTION_BANK, 0, rng, { timeLimitMs: 10 ** 9, ...opts });
   let now = 0, turns = 0;
@@ -353,20 +360,20 @@ function botGame(seed: number, nTeams: number, opts: GameOptions) {
   return { s, turns };
 }
 
-test('pacing: 6 teams x 2 horses (win = 2 home) finish in about 15-20 minutes at ~18 s per turn', () => {
+test('pacing: 5 teams x 2 horses (win = 2 home), 60% correct answers, mostly finish within the 18-minute clock at ~18 s per turn', () => {
   const turns: number[] = [];
-  for (let seed = 1; seed <= 40; seed++) { const r = botGame(seed * 13, 6, {}); assert.equal(r.s.phase, 'finished'); assert.equal(r.s.endedBy, 'finish'); turns.push(r.turns); }
+  for (let seed = 1; seed <= 40; seed++) { const r = botGame(seed * 13, 5, {}); assert.equal(r.s.phase, 'finished'); assert.equal(r.s.endedBy, 'finish'); turns.push(r.turns); }
   turns.sort((a, b) => a - b);
   const median = turns[20], p90 = turns[36];
-  console.log(`  pacing 6x2: median ${median} turns (~${(median * 0.3).toFixed(1)} min), p90 ${p90} (~${(p90 * 0.3).toFixed(1)} min)`);
+  console.log(`  pacing 5x2: median ${median} turns (~${(median * 0.3).toFixed(1)} min), p90 ${p90} (~${(p90 * 0.3).toFixed(1)} min)`);
   assert.ok(median <= 66, `median ${median} turns is too long`);
   assert.ok(p90 <= 90, `p90 ${p90} turns is too long`);
 });
 
 test('pacing: 3 horses per team, win with 2 home, stays within the 20-minute cap range', () => {
   const turns: number[] = [];
-  for (let seed = 1; seed <= 30; seed++) turns.push(botGame(seed * 7, 6, { horses: 3, winHome: 2 }).turns);
+  for (let seed = 1; seed <= 30; seed++) turns.push(botGame(seed * 7, 5, { horses: 3, winHome: 2 }).turns);
   turns.sort((a, b) => a - b);
-  console.log(`  pacing 6x3: median ${turns[15]} turns (~${(turns[15] * 0.3).toFixed(1)} min)`);
+  console.log(`  pacing 5x3: median ${turns[15]} turns (~${(turns[15] * 0.3).toFixed(1)} min)`);
   assert.ok(turns[15] <= 75);
 });

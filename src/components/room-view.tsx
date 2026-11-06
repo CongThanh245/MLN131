@@ -48,9 +48,11 @@ export function SkillCardView({ card, kind, disabledReason, onUse, selected, big
   const label = def.target === 'enemy' ? 'CHẶN ĐỐI THỦ' : def.timing === 'question' ? 'HỖ TRỢ' : 'TỰ THÂN';
   const body = (
     <>
-      <span className="card-band"><b>{label}</b><b title={def.timing === 'roll' ? 'Dùng trước khi đổ xúc xắc' : 'Dùng khi đang trả lời'}>{def.timing === 'roll' ? '🎲' : '❓'}</b></span>
+      <span className="card-band"><b>{label}</b></span>
+      <span className="card-when">{def.timing === 'roll' ? '🎲 Dùng trước khi đổ' : '❓ Dùng khi trả lời'}</span>
       <span className="card-art" aria-hidden="true">{def.icon}</span>
       <span className="card-body"><strong>{def.name}</strong><span>{def.description}</span><em>{def.theme}</em></span>
+      {onUse && (disabledReason ? <span className="card-reason">🔒 {disabledReason}</span> : <span className="card-reason ok">👆 Bấm để dùng</span>)}
     </>
   );
   const cls = `game-card ${tone}${big ? ' big' : ''}${selected ? ' is-selected' : ''}`;
@@ -66,6 +68,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
   const [fx, setFx] = useState<BoardFx | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [reveal, setReveal] = useState<NonNullable<View['game']>['skillLog'][number] | null>(null);
+  const [popup, setPopup] = useState<NonNullable<NonNullable<View['game']>['resolution']> | null>(null);
   const seenSkill = useRef<number | null | undefined>(undefined);
   const seenResolution = useRef<number | null | undefined>(undefined);
   const wasSeated = useRef(false);
@@ -85,8 +88,10 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     const team = view.game.players[res.teamId];
     const idx = Math.max(0, team.horses.findIndex((h) => h.id === res.horseId));
     setFx({ id: res.id, kicked: res.kicked.map((k) => k.horseId), at: res.kicked.length ? positionOf(team.seat, res.to, idx, view.game.finish, view.game.arms) : null });
+    setPopup(res);
     const t = setTimeout(() => setFx(null), 2200);
-    return () => clearTimeout(t);
+    const p = setTimeout(() => setPopup((cur) => (cur?.id === res.id ? null : cur)), 7000);
+    return () => { clearTimeout(t); clearTimeout(p); };
   }, [res, view?.game]);
 
   // Reveal every skill card played to the whole table for a few seconds (not the ones already in the log at load).
@@ -109,6 +114,15 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     else if (wasSeated.current && view.status === 'lobby') { wasSeated.current = false; setKicked(true); }
   }, [seatedNow, view]);
 
+  const myTurnNow = !!view?.game && view.viewer.role === 'team' && view.viewer.playerId === view.game.actingMemberId && view.game.phase !== 'finished' && !view.game.paused;
+  useEffect(() => {
+    if (!myTurnNow) return;
+    const base = document.title;
+    let on = false;
+    const t = setInterval(() => { on = !on; document.title = on ? '🔔 Đến lượt bạn!' : base; }, 900);
+    return () => { clearInterval(t); document.title = base; };
+  }, [myTurnNow]);
+
   const teamsById = useMemo(() => Object.fromEntries((view?.teams ?? []).map((t) => [t.id, t])), [view?.teams]);
   if (gone) return <main className="center-note"><h1>Phòng đã đóng</h1><p className="muted">Quản trị đã xóa phòng {code} hoặc phòng đã hết hạn.</p><Link className="btn primary" href={mode === 'admin' ? '/admin' : '/play'}>{mode === 'admin' ? 'Về danh sách phòng' : 'Vào phòng khác'}</Link></main>;
   if (denied) return <main className="center-note"><p className="error">Phiên quản trị đã hết hạn.</p><Link className="btn primary" href="/admin">Đăng nhập quản trị</Link></main>;
@@ -123,7 +137,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
   const link = typeof window === 'undefined' ? '' : `${window.location.origin}/play?code=${view.code}`;
   const exitText = view.settings.exitRolls.join(' hoặc ');
 
-  const run = (action: Parameters<typeof send>[0]) => { setPending(null); void send(action); };
+  const run = (action: Parameters<typeof send>[0]) => { setPending(null); setHover(null); void send(action); };
 
   const g0 = view.game;
   const clockMs = g0 && g0.phase !== 'finished' ? (g0.paused ? g0.timeLeft : g0.endsAt !== null ? g0.endsAt - serverNow() : null) : null;
@@ -244,6 +258,16 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     if (def.timing === 'question' && g.phase !== 'question') return 'Chỉ dùng khi đang trả lời câu hỏi';
     return null;
   };
+  const rollCards = myTurn && g.phase === 'roll' && !g.skillUsed ? hand.filter((c) => skillByKind[c.kind].timing === 'roll') : [];
+  const helpCards = hand.filter((c) => skillByKind[c.kind].timing === 'question');
+  const cardStatus = !hand.length ? { now: false, text: '' }
+    : g.paused ? { now: false, text: '⏸ Ván đang tạm dừng.' }
+    : !myTurn && g.turnTeamId === meTeam ? { now: false, text: `⏳ Đang là lượt của ${actor?.name} (đội bạn): chỉ người đến lượt mới bấm được thẻ. Hãy nhắc bạn ấy!` }
+    : !myTurn ? { now: false, text: '⏳ Chưa đến lượt đội bạn. Thẻ chỉ dùng được khi đến lượt bạn.' }
+    : g.phase === 'roll' && !g.skillUsed ? { now: true, text: '👉 Đến lượt bạn: có thể dùng 1 thẻ 🎲 ngay bây giờ (trước khi đổ xúc xắc).' }
+    : g.phase === 'roll' ? { now: false, text: 'Đã dùng 1 thẻ trước khi đổ ở lượt này. Hãy đổ xúc xắc.' }
+    : g.phase === 'question' ? { now: helpCards.length > 0, text: helpCards.length ? '👉 Đang trả lời: có thể dùng thẻ ❓ hỗ trợ (💡 gợi ý / 🎯 loại 2 đáp án sai).' : 'Đang trả lời: chỉ thẻ ❓ hỗ trợ dùng được lúc này (đội bạn chưa có).' }
+    : { now: false, text: 'Đang chọn ngựa: không dùng thẻ được lúc này.' };
   const use = (card: SkillCard) => (skillByKind[card.kind].target === 'enemy' ? setPending(pending?.id === card.id ? null : card) : run({ type: 'game', action: { type: 'play-skill', cardId: card.id } }));
   const horseOk = (card: SkillCard, tid: string, h: Game['players'][string]['horses'][number]): string | null => {
     const ring = (x: { progress: number }) => x.progress >= 1 && x.progress <= ringSizeFor(g.arms);
@@ -267,6 +291,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
         <section className="left">
           <div className="panel board-wrap">
             <Board teams={boardTeams} fx={fx} highlight={hover} arms={g.arms} finish={g.finish} center={<Dice dice={g.dice} rolling={rolling} />} onPickHorse={(horseId) => run({ type: 'game', action: { type: 'choose-horse', horseId } })} />
+            {popup && !reveal && <ResultPopup res={popup} mine={popup.teamId === meTeam} teamName={teamName} tint={tint} exitText={exitText} onClose={() => setPopup(null)} />}
             {reveal && (
               <div key={reveal.id} className="reveal" role="status">
                 <SkillCardView kind={reveal.kind} big style={{ '--rot': '0deg', '--lift': '0px' } as CSSProperties} />
@@ -275,6 +300,10 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
             )}
             <div className="tray">
               <div className="tray-slot"><span className="tray-label">BỘ BÀI</span><div className="deck-pile">{Array.from({ length: Math.min(4, Math.ceil(g.deckCount / 6)) }, (_, i) => <i key={i} className="card-back" style={{ '--i': i } as CSSProperties} />)}</div><small>{g.deckCount} lá</small></div>
+              <div className="tray-slot wide">
+                <span className="tray-label">CÁCH ĐI</span>
+                <small className="how-move">Ngựa ra ở ô <b>★</b> cùng màu, đi theo <b>mũi tên ➜</b> (chiều kim đồng hồ) qua các cánh. Đi hết 1 vòng thì rẽ vào <b>đường về nhà cùng màu</b> (1 → 2 → 🏁).</small>
+              </div>
               <div className="tray-slot wide">
                 <span className="tray-label">THẺ VỪA DÙNG</span>
                 {lastSkill ? (
@@ -303,10 +332,22 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
             <div className={`panel turn${myTurn ? ' mine' : ''}`} style={{ borderColor: tint(turnTeam) }}>
               <div className="turn-head">
                 <div><p className="eyebrow">LƯỢT {g.turnNumber}{g.streak > 0 ? ` · TUNG THÊM ×${g.streak}` : ''} · {g.phase === 'roll' ? 'ĐỔ XÚC XẮC' : g.phase === 'question' ? 'TRẢ LỜI CÂU HỎI' : 'CHỌN NGỰA ĐI'}</p>
-                  <h2 style={{ color: tint(turnTeam) }}>{myTurn ? 'Đến lượt bạn!' : `${teamName(turnTeam)} · ${actor?.name}`}</h2></div>
+                  <h2 style={{ color: tint(turnTeam) }}>{myTurn ? '🔔 Đến lượt bạn!' : `${teamName(turnTeam)} · ${actor?.name}`}</h2>
+                  <p className="turn-todo">{myTurn
+                    ? (g.phase === 'roll' ? 'Bấm “Đổ xúc xắc” (có thể dùng 1 thẻ trước).' : g.phase === 'question' ? 'Chọn 1 đáp án đúng. Đúng mới được đi!' : 'Bấm vào con ngựa muốn đi.')
+                    : `${actor?.name} đang ${g.phase === 'roll' ? 'đổ xúc xắc' : g.phase === 'question' ? 'trả lời câu hỏi' : 'chọn ngựa đi'}…`}</p></div>
                 <Dice dice={g.dice} rolling={rolling} />
                 {secs !== null && <div className={`timer${secs <= 5 ? ' low' : ''}`}>{g.paused ? '⏸' : ''}{secs}s</div>}
               </div>
+              <ol className="steps" aria-label="Các bước của lượt">
+                {([['roll', '🃏 Dùng thẻ (tuỳ chọn)'], ['roll', '🎲 Đổ xúc xắc'], ['question', '❓ Trả lời'], ['move', '🐴 Chọn ngựa']] as const).map(([ph, label], i) => {
+                  const order = { roll: 1, question: 2, move: 3, finished: 4 } as const;
+                  const cur = order[g.phase];
+                  const at = i === 0 ? 1 : order[ph];
+                  const state = i === 0 ? (g.phase === 'roll' && !g.skillUsed ? 'now' : 'done') : at === cur ? 'now' : at < cur ? 'done' : '';
+                  return <li key={i} className={state}><b>{i + 1}</b>{label}</li>;
+                })}
+              </ol>
               {actorOffline && <p className="notice warn">⚠ {actor?.name} đang mất kết nối. Hệ thống sẽ tự chơi thay sau vài giây.</p>}
               {secs === 0 && g.phase === 'question' && !g.paused && <p className="muted small">Hết giờ, đang tính kết quả…</p>}
               {stableHorses > 0 && g.phase === 'roll' && (
@@ -314,7 +355,10 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
               )}
               {g.phase === 'roll' && (
                 myTurn
-                  ? <button className="btn primary big" disabled={busy} onClick={() => run({ type: 'game', action: { type: 'roll' } })}>🎲 Đổ xúc xắc</button>
+                  ? <>
+                      {rollCards.length > 0 && <p className="card-now">🃏 Bạn có <b>{rollCards.length} thẻ 🎲</b> dùng được <b>trước khi đổ</b> (tối đa 1 thẻ/lượt): {rollCards.map((c) => `${skillByKind[c.kind].icon} ${skillByKind[c.kind].name}`).join(', ')}. Bấm thẻ ở khung “Thẻ kỹ năng của đội” bên dưới, hoặc đổ luôn.</p>}
+                      <button className="btn primary big" disabled={busy} onClick={() => run({ type: 'game', action: { type: 'roll' } })}>🎲 Đổ xúc xắc</button>
+                    </>
                   : <p className="muted">Chờ {actor?.name} ({teamName(turnTeam)}) đổ xúc xắc…</p>
               )}
               {g.phase === 'question' && q && (
@@ -328,12 +372,18 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
                     ))}
                   </div>
                   {q.hint && <p className="hint">💡 Gợi ý: {q.hint}</p>}
-                  <p className="muted small">Đúng: nhận <b>1 thẻ kỹ năng</b>. Sai hoặc hết giờ: không có thẻ, ngựa vẫn đi theo tổng xúc xắc{g.dice ? ` (${g.dice[0] + g.dice[1]})` : ''}.</p>
+                  {myTurn && helpCards.length > 0 && (
+                    <div className="card-now">🃏 Thẻ hỗ trợ dùng được ngay:{' '}
+                      {helpCards.map((c) => <button key={c.id} className="btn small" disabled={busy || !!reason(c)} onClick={() => use(c)}>{skillByKind[c.kind].icon} {skillByKind[c.kind].name}</button>)}
+                    </div>
+                  )}
+                  <p className="muted small">Đúng: được đi và nhận <b>1 thẻ kỹ năng</b>. Trả lời đúng mới được đi {g.dice ? `${g.dice[0] + g.dice[1]} bước` : 'theo tổng xúc xắc'}. Sai hoặc hết giờ: ngựa đứng yên, không có thẻ.</p>
                 </div>
               )}
               {g.phase === 'move' && g.pending && (
                 <div className="move-panel">
-                  <p className="muted small">{g.pending.outcome === 'correct' ? '✅ Trả lời đúng, đã nhận thẻ kỹ năng.' : g.pending.outcome === 'wrong' ? '❌ Trả lời sai.' : '⌛ Hết giờ.'} Tổng xúc xắc <b>{g.dice ? g.dice[0] + g.dice[1] : ''}</b>: {myTurn ? 'chọn con ngựa muốn đi (hoặc bấm thẳng vào ngựa trên bàn cờ).' : `chờ ${actor?.name} chọn ngựa…`}</p>
+                  <p className="verdict-bar">✅ {actor?.name} trả lời ĐÚNG! Đội nhận 1 thẻ kỹ năng.</p>
+                  <p className="muted small">Tổng xúc xắc <b>{g.dice ? g.dice[0] + g.dice[1] : ''}</b>: {myTurn ? 'chọn con ngựa muốn đi (hoặc bấm thẳng vào ngựa trên bàn cờ).' : `chờ ${actor?.name} chọn ngựa…`}</p>
                   <div className="move-options">
                     {g.pending.options.map((o) => {
                       const h = turn.horses.find((x) => x.id === o.horseId)!;
@@ -359,6 +409,17 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
             <div className="panel hand">
               <div className="panel-head"><h2>Thẻ kỹ năng của đội ({hand.length}/5)</h2>
                 <div className="status-icons">{mineTeam.shield && <span>🛡️ Khiên</span>}{mineTeam.boost > 0 && <span>🚩 +{mineTeam.boost}</span>}{mineTeam.doubleDice && <span>🎲 x2</span>}{mineTeam.stunned && <span>💤 đội mất lượt kế</span>}{mineTeam.horses.filter((h) => h.cap !== null).map((h) => <span key={h.id}>🚧 {h.name} tối đa {h.cap}</span>)}</div></div>
+              {cardStatus.text && <p className={`card-status${cardStatus.now ? ' now' : ''}`}>{cardStatus.text}</p>}
+              <details className="card-howto">
+                <summary>Cách dùng thẻ kỹ năng</summary>
+                <ol>
+                  <li><b>Nhận thẻ:</b> trả lời đúng → đội rút 1 thẻ (giữ tối đa 5, thẻ dùng chung cả đội).</li>
+                  <li><b>Ai bấm được:</b> chỉ người <b>đang đến lượt</b> của đội bạn.</li>
+                  <li><b>🎲 Trước khi đổ</b> (thẻ đỏ “chặn đối thủ”, thẻ xanh “tự thân”): dùng khi vừa đến lượt, trước khi bấm Đổ xúc xắc, tối đa 1 thẻ/lượt. Thẻ chặn đối thủ sẽ hỏi bạn chọn <b>ngựa mục tiêu</b>.</li>
+                  <li><b>❓ Khi trả lời</b> (thẻ vàng “hỗ trợ”): dùng lúc câu hỏi đang hiện: 💡 mở gợi ý, 🎯 loại 2 đáp án sai.</li>
+                  <li>Đội có 🛡️ Khiên sẽ chặn thẻ chặn đối thủ kế tiếp nhắm vào mình (thẻ đó vẫn mất).</li>
+                </ol>
+              </details>
               {hand.length === 0 ? <p className="muted">Chưa có thẻ. Trả lời đúng để đội nhận thẻ kỹ năng mới.</p> : (
                 <div className="hand-fan">{hand.map((c, i) => { const off = i - (hand.length - 1) / 2; return <SkillCardView key={c.id} card={c} disabledReason={reason(c)} selected={pending?.id === c.id} onUse={() => use(c)} style={{ '--rot': `${off * 4}deg`, '--lift': `${Math.abs(off) * 7}px` } as CSSProperties} />; })}</div>
               )}
@@ -367,18 +428,6 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
                   onHover={setHover} onCancel={() => { setPending(null); setHover(null); }}
                   onPick={(horseId) => { setHover(null); run({ type: 'game', action: { type: 'play-skill', cardId: pending.id, targetHorseId: horseId } }); }} />
               )}
-            </div>
-          )}
-
-          {res && (
-            <div className={`panel result ${res.outcome}`}>
-              <p className="eyebrow">KẾT QUẢ LƯỢT {res.id}</p>
-              <p><b style={{ color: tint(res.teamId) }}>{res.memberName} ({teamName(res.teamId)})</b> tung <b>{res.dice[0]} + {res.dice[1]} = {res.dice[0] + res.dice[1]}</b>{res.dice[0] === res.dice[1] ? ' (đôi!)' : ''} → {res.outcome === 'correct' ? '✅ trả lời đúng' : res.outcome === 'wrong' ? '❌ trả lời sai' : '⌛ hết giờ'}.{' '}
-                {res.exited ? `${res.horseName} xuất chuồng! ` : res.horseId ? `${res.horseName} đi ${res.steps} ô (${res.from} → ${res.to})${res.capped ? ', bị Thuế Khóa giới hạn' : ''}. ` : `Không có ngựa nào đi được (cần ${exitText} để xuất chuồng). `}
-                {res.gained && <>Nhận thẻ <b>{skillByKind[res.gained as SkillKind].icon} {skillByKind[res.gained as SkillKind].name}</b>. </>}
-                {res.kicked.length > 0 && <b className="kick-text">ĐÁ {res.kicked.map((k) => `${k.name} của ${teamName(k.teamId)}`).join(', ')}! </b>}
-                {res.bonus && g.phase !== 'finished' && 'Được tung thêm một lượt.'}</p>
-              <p className="q-review"><b>Câu hỏi:</b> {res.questionText}<br /><b>Đáp án:</b> {res.correctText}<br /><span className="muted">{res.explain} ({res.ref})</span></p>
             </div>
           )}
 
@@ -437,6 +486,39 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
         {error && <p className="toast error" role="alert">{error}</p>}
       </main>
     </>
+  );
+}
+
+/** Shown to everybody in the room after each turn: was the answer right, what happened on the board. */
+function ResultPopup({ res, mine, teamName, tint, exitText, onClose }: {
+  res: NonNullable<Game['resolution']>; mine: boolean; teamName: (id?: string) => string; tint: (id?: string) => string; exitText: string; onClose: () => void;
+}) {
+  const verdict = res.outcome === 'correct' ? { icon: '✅', text: 'ĐÚNG RỒI!' } : res.outcome === 'wrong' ? { icon: '❌', text: 'SAI RỒI!' } : { icon: '⌛', text: 'HẾT GIỜ!' };
+  const gained = res.gained ? skillByKind[res.gained as SkillKind] : null;
+  return (
+    <div className="pop-backdrop" onClick={onClose} role="presentation">
+      <div className={`result-pop is-${res.outcome}`} role="dialog" aria-live="polite" aria-label={`Kết quả lượt ${res.id}`} onClick={(e) => e.stopPropagation()}>
+        <div className="pop-verdict"><span>{verdict.icon}</span>{verdict.text}</div>
+        <p className="pop-who"><b style={{ color: tint(res.teamId) }}>{res.memberName}</b> · {teamName(res.teamId)}{mine ? ' (đội bạn)' : ''} · tung {res.dice[0]} + {res.dice[1]} = <b>{res.dice[0] + res.dice[1]}</b></p>
+        <div className="pop-qa">
+          <p className="pop-q">{res.questionText}</p>
+          {res.outcome !== 'correct' && <p className="pop-ans pop-bad">✗ {res.pickedText ? <>Đã chọn: <b>{res.pickedText}</b></> : 'Không trả lời kịp'}</p>}
+          <p className="pop-ans pop-good">✓ Đáp án đúng: <b>{res.correctText}</b></p>
+          <p className="pop-explain">{res.explain} <span>({res.ref})</span></p>
+        </div>
+        <div className="pop-effect">
+          {res.outcome !== 'correct' ? <span>🐴 Ngựa <b>đứng yên</b>, không nhận thẻ.</span>
+            : res.exited ? <span>🐴 <b>{res.horseName}</b> xuất chuồng!</span>
+            : res.horseId ? <span>🐴 <b>{res.horseName}</b> tiến <b>{res.steps} ô</b>{res.capped ? ' (bị Thuế Khóa giới hạn)' : ''}.</span>
+            : <span>🐴 Không có ngựa nào đi được (cần {exitText} để xuất chuồng).</span>}
+          {gained && <span>🃏 Nhận thẻ <b>{gained.icon} {gained.name}</b></span>}
+          {res.kicked.length > 0 && <span className="kick-text">💥 ĐÁ {res.kicked.map((k) => `${k.name} của ${teamName(k.teamId)}`).join(', ')} về chuồng!</span>}
+          {res.bonus && <span>🎲 Được tung thêm một lượt!</span>}
+        </div>
+        <button className="btn primary" onClick={onClose}>Đóng</button>
+        <i className="pop-timer" />
+      </div>
+    </div>
   );
 }
 

@@ -33,7 +33,7 @@ export function CardLibrary({ code }: { code?: string }) {
           <p className="eyebrow">BỘ BÀI KỸ NĂNG · {SKILLS.length} LOẠI · {total} THẺ</p>
           <h1>Thẻ kỹ năng</h1>
           <div className="deck-note">
-            <div><b>Cách nhận:</b> trả lời đúng một câu hỏi → rút ngẫu nhiên 1 thẻ từ bộ bài. Sai hoặc hết giờ vẫn đi nhưng không có thẻ.</div>
+            <div><b>Cách nhận:</b> trả lời đúng một câu hỏi → rút ngẫu nhiên 1 thẻ từ bộ bài. Sai hoặc hết giờ: ngựa đứng yên và không có thẻ.</div>
             <div><b>Cách dùng:</b> thẻ đỏ (chặn đối thủ) và thẻ xanh (tự thân) dùng trước khi đổ xúc xắc, 1 thẻ mỗi lượt. Thẻ vàng dùng khi đang trả lời.</div>
             <div><b>Giới hạn:</b> tay tối đa 5 thẻ. Đối thủ chỉ thấy số thẻ của bạn, không thấy là thẻ gì. Khiên chặn được 1 thẻ đỏ.</div>
           </div>

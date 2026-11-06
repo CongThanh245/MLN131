@@ -77,6 +77,8 @@ export interface MoveOption {
 export interface PendingMove {
   outcome: 'correct' | 'wrong' | 'timeout';
   picked: number | null;
+  /** Text of the option the player picked (null when time ran out). */
+  pickedText: string | null;
   gained: SkillKind | null;
   questionText: string;
   correctText: string;
@@ -104,6 +106,7 @@ export interface Resolution {
   /** Doubles, a kick or a horse reaching home gives the same player another roll. */
   bonus: boolean;
   picked: number | null;
+  pickedText: string | null;
   outcome: 'correct' | 'wrong' | 'timeout';
   questionText: string;
   correctText: string;

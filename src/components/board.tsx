@@ -10,10 +10,10 @@ export const COLOR_HEX: Record<TeamColor, string> = {
 /* ---- geometry (viewBox 700 x 700): one arm per team slot (2-6), each with two outer columns and a middle home lane ---- */
 const VB = 700;
 const C = VB / 2;
-const PITCH = 36;
-const TILE = 32;
-const U0 = 98;
-const STABLE_R = 282;
+const PITCH = 44;
+const TILE = 40;
+const U0 = 122;
+const STABLE_R = 290;
 const armAngle = (arm: number, arms: number): number => (arm * 2 * Math.PI) / arms;
 const pt = (arm: number, arms: number, u: number, v: number): [number, number] => {
   const a = armAngle(arm, arms);
@@ -123,6 +123,9 @@ export function Board({ teams, fx, center, highlight, onPickHorse, arms = DEFAUL
               </g>
             );
           })}
+          {/* the race track: one road through every ring cell in moving order (clockwise) */}
+          <polygon points={ring.map((c) => `${c.x},${c.y}`).join(' ')} fill="none" stroke="#e6d3a3" strokeWidth={38} strokeLinejoin="round" opacity={0.85} />
+          <polygon points={ring.map((c) => `${c.x},${c.y}`).join(' ')} fill="none" stroke="#c9ad6c" strokeWidth={2} strokeDasharray="6 8" strokeLinejoin="round" />
           {/* home lanes */}
           {colors.map((color, seat) => (
             <g key={`lane${seat}`}>
@@ -153,14 +156,33 @@ export function Board({ teams, fx, center, highlight, onPickHorse, arms = DEFAUL
               </g>
             );
           })}
+          {/* direction arrows: on every plain tile, plus one in the middle of each long hop between arms */}
+          {ring.map((c, i) => {
+            const n = ring[(i + 1) % ring.length];
+            const a = deg(Math.atan2(n.y - c.y, n.x - c.x));
+            const long = Math.hypot(n.x - c.x, n.y - c.y) > PITCH * 1.5;
+            return (
+              <g key={`arrow${i}`}>
+                {!c.tip && <path d="M-7 -9 L6 0 L-7 9" transform={`translate(${c.x} ${c.y}) rotate(${a})`} fill="none" stroke="#a0763a" strokeWidth={4.5} strokeLinecap="round" strokeLinejoin="round" />}
+                {long && <path d="M-9 -10 L7 0 L-9 10 Z" transform={`translate(${(c.x + n.x) / 2} ${(c.y + n.y) / 2}) rotate(${a})`} fill="#b5925a" />}
+              </g>
+            );
+          })}
+          {/* where each team turns off the ring into its own home lane */}
+          {colors.map((color, seat) => {
+            const last = ring[(seat * CELLS_PER_ARM + ARM_LEN + ringSizeFor(arms) - 1) % ringSizeFor(arms)];
+            const [lx, ly] = lanePoint(seat, arms, 1);
+            const a = deg(Math.atan2(ly - last.y, lx - last.x));
+            return <path key={`turn${seat}`} d="M-8 -9 L7 0 L-8 9 Z" transform={`translate(${(last.x + lx) / 2} ${(last.y + ly) / 2}) rotate(${a})`} fill={COLOR_HEX[color]} stroke="#fff" strokeWidth={2.5} />;
+          })}
           {/* hub */}
-          <circle cx={C} cy={C + 6} r={48} fill="#0004" />
+          <circle cx={C} cy={C + 6} r={52} fill="#0004" />
           {colors.map((color, seat) => {
             const a0 = armAngle(seat, arms) - Math.PI / arms, a1 = armAngle(seat, arms) + Math.PI / arms;
             const p = (a: number, r: number) => `${C + r * Math.sin(a)} ${C - r * Math.cos(a)}`;
-            return <path key={seat} d={`M${C} ${C} L${p(a0, 48)} A48 48 0 0 1 ${p(a1, 48)} Z`} fill={COLOR_HEX[color]} stroke="#fff" strokeWidth={2} />;
+            return <path key={seat} d={`M${C} ${C} L${p(a0, 52)} A52 52 0 0 1 ${p(a1, 52)} Z`} fill={COLOR_HEX[color]} stroke="#fff" strokeWidth={2} />;
           })}
-          <circle cx={C} cy={C} r={34} fill="#fffdf6" stroke="#fff" strokeWidth={3} />
+          <circle cx={C} cy={C} r={37} fill="#fffdf6" stroke="#fff" strokeWidth={3} />
         </svg>
 
         <div className="props">{PROPS.map((p, i) => <span key={i} className="prop" style={{ left: `${p.x}%`, top: `${p.y}%`, fontSize: `${p.s * 2.4}vmin` }}>{p.e}</span>)}</div>

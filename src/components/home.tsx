@@ -24,7 +24,7 @@ export function Home() {
           <ol>
             <li><b>5 đội</b> mặc định (quản trị thêm/bớt được, 2-6 đội, màu cố định), mỗi đội 1-6 người và <b>2-3 ngựa dùng chung</b>. Các thành viên lần lượt đến lượt đổ xúc xắc.</li>
             <li><b>2 xúc xắc</b>: ngựa đi theo <b>tổng hai viên</b>. Một ngựa đã ở ô xuất phát ★ sẵn; ngựa trong chuồng cần <b>một viên ra 1 hoặc 6</b> (hoặc chỉ 6 nếu chọn luật cổ điển) để xuất chuồng.</li>
-            <li>Mỗi lượt: (tuỳ chọn) dùng <b>1 thẻ kỹ năng</b> → <b>đổ xúc xắc</b> → trả lời <b>1 câu hỏi</b> → <b>chọn ngựa đi</b>. <b>Đúng</b>: nhận <b>1 thẻ</b>. <b>Sai / hết giờ</b>: không có thẻ nhưng ngựa vẫn đi.</li>
+            <li>Mỗi lượt: (tuỳ chọn) dùng <b>1 thẻ kỹ năng</b> → <b>đổ xúc xắc</b> → trả lời <b>1 câu hỏi</b> → <b>chọn ngựa đi</b>. <b>Đúng</b>: ngựa được đi và nhận <b>1 thẻ</b>. <b>Sai / hết giờ</b>: ngựa đứng yên, không có thẻ.</li>
             <li><b>Đá ngựa:</b> đáp xuống ô có ngựa đội khác (trừ ô ★ an toàn) thì ngựa đó bị <b>đá về chuồng</b>. Hai viên giống nhau, đá ngựa hoặc về đích được <b>tung thêm lượt</b> (tối đa 2 lần liên tiếp).</li>
             <li>Đi hết một vòng rồi rẽ vào <b>đường về nhà</b> (không ai đá được). Đội đưa đủ số ngựa về đích trước (mặc định <b>2</b>) thắng. Ván có <b>giới hạn 10-20 phút</b>: hết giờ, đội có nhiều ngựa về đích nhất thắng.</li>
           </ol>
