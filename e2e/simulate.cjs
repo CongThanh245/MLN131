@@ -298,7 +298,7 @@ async function joinUi(browser, code, name, teamIdx) {
   // Drive the game through the API, grabbing the interesting screens as they come up.
   const wants = { enemy: false, help: false, kick: false, bonus: false };
   let turns = 0;
-  const NAMES = { stun: 'Chia Để Trị', barricade: 'Thuế Khóa Nặng Nề', 'push-back': 'Đàn Áp Khởi Nghĩa', swap: 'Hoán Đổi Vận Mệnh', steal: 'Mua Chuộc', hint: 'Soi Sáng', fifty: 'Thu Hẹp Vòng Vây', boost: 'Đường Cách Mệnh', shield: 'Chủ Nghĩa Làm Cốt', 'double-dice': 'Nhãn Quan Sắc Bén' };
+  const NAMES = { stun: 'Ngăn Cách Không Gian', barricade: 'Gánh Nặng Kinh Tế', 'push-back': 'Bảo Thủ, Áp Đặt', swap: 'Đổi Vai Làm Chủ', steal: 'Lỏng Lẻo Hôn Nhân', hint: 'Ông Bà Dạy Bảo', fifty: 'Chọn Lọc Giá Trị', boost: 'Kinh Tế Hộ Gia Đình', shield: 'Gia Đình Văn Hóa', 'double-dice': 'Kế Thừa Và Tiếp Thu' };
   await step('Dùng thẻ kỹ năng: chọn mục tiêu, hiệu ứng lá bài, bảng thẻ đã dùng', async () => {
     for (let i = 0; i < 260 && !wants.enemy; i++) {
       const { p: actor, v } = await actingPage(); const mv = await apiView(actor, code);
@@ -323,7 +323,7 @@ async function joinUi(browser, code, name, teamIdx) {
     }
     if (!wants.enemy) finding('thấp', 'mô phỏng', 'Không gặp thẻ chặn đối thủ trong 260 lượt (kiểm tra tỉ lệ rút thẻ).');
   });
-  await step('Thẻ hỗ trợ khi trả lời (Soi Sáng / Thu Hẹp) dùng được đúng lúc', async () => {
+  await step('Thẻ hỗ trợ khi trả lời (Ông Bà Dạy Bảo / Chọn Lọc) dùng được đúng lúc', async () => {
     for (let i = 0; i < 260 && !wants.help; i++) {
       const { p: actor } = await actingPage(); const mv = await apiView(actor, code);
       const card = mv.hand.find((c) => ['hint', 'fifty'].includes(c.kind));

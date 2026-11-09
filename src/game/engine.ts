@@ -158,7 +158,7 @@ function nextTurn(s: GameState, now: number, bonus: boolean): void {
       const candidate = s.players[s.order[idx]];
       if (candidate.stunned) {
         candidate.stunned = false;
-        log(s, now, 'skip', 'bị “Chia Để Trị”, mất lượt này.', candidate.teamId);
+        log(s, now, 'skip', 'bị “Ngăn Cách Không Gian”, mất lượt này.', candidate.teamId);
         continue;
       }
       break;
@@ -311,7 +311,7 @@ function applyMove(s: GameState, now: number, option: MoveOption | null): void {
   const move = stayed ? 'ngựa đứng yên'
     : !option ? 'không có ngựa nào đi được (cần ' + s.exitRolls.join(' hoặc ') + ' để xuất chuồng)'
     : option.kind === 'exit' ? `${horse!.name} xuất chuồng`
-    : `${horse!.name} tiến ${option.to - option.from} bước${option.capped ? ' (bị Thuế Khóa giới hạn)' : ''}`;
+    : `${horse!.name} tiến ${option.to - option.from} bước${option.capped ? ' (bị Gánh Nặng Kinh Tế giới hạn)' : ''}`;
   log(s, now, 'move', `(${member.name}) ${verdict}, ${move}.`, team.teamId);
   if (p.gained) log(s, now, 'card', `nhận thẻ “${skillByKind[p.gained].name}”.`, team.teamId);
   for (const k of kicked) log(s, now, 'kick', `ĐÁ ${k.name}! Ngựa bị đá về chuồng.`, team.teamId, k.teamId);
@@ -333,7 +333,7 @@ function applyMove(s: GameState, now: number, option: MoveOption | null): void {
 function hostile(s: GameState, now: number, target: PlayerState, name: string): boolean {
   if (target.shield) {
     target.shield = false;
-    log(s, now, 'block', `dùng Khiên “Chủ Nghĩa Làm Cốt” chặn “${name}”.`, target.teamId);
+    log(s, now, 'block', `dùng Khiên “Gia Đình Văn Hóa” chặn “${name}”.`, target.teamId);
     return true;
   }
   return false;
@@ -360,7 +360,7 @@ function playSkill(s: GameState, cardId: string, targetHorseId: string | undefin
     const horseLevel = ['barricade', 'push-back', 'swap'].includes(card.kind);
     if (horseLevel && h.progress >= s.finish) throw new Error('Ngựa này đã về đích.');
     if (card.kind === 'stun' && target.team.stunned) throw new Error('Đội này đã bị mất lượt rồi.');
-    if (card.kind === 'barricade' && (h.cap !== null || h.progress === 0)) throw new Error(h.progress === 0 ? 'Ngựa này còn ở chuồng.' : 'Ngựa này đã bị Thuế Khóa rồi.');
+    if (card.kind === 'barricade' && (h.cap !== null || h.progress === 0)) throw new Error(h.progress === 0 ? 'Ngựa này còn ở chuồng.' : 'Ngựa này đã bị Gánh Nặng Kinh Tế rồi.');
     if (card.kind === 'push-back' && !onRing(s, h)) throw new Error('Chỉ đẩy lùi được ngựa đang trên vòng đua.');
     if (card.kind === 'swap' && (!onRing(s, h) || !myHorse)) throw new Error('Hoán đổi cần ngựa dẫn đầu vòng đua của bạn và ngựa mục tiêu đều đang trên vòng đua.');
     if (card.kind === 'steal' && !target.team.hand.length) throw new Error('Đội này chưa có thẻ nào để lấy.');

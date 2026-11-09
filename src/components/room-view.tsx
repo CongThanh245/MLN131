@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
-import { Board, COLOR_HEX, HorseIcon, positionOf, type BoardFx, type BoardTeam } from './board';
+import { Board, COLOR_HEX, HorseIcon, positionOf, type BoardChoice, type BoardFx, type BoardTeam } from './board';
 import { useClock, useRoom, type RoomMode, type RoomView as View } from './client';
 import { HOME_LANE, MAX_MEMBERS, ringSizeFor } from '@/game/engine';
 import { skillByKind } from '@/game/skills';
@@ -241,6 +241,10 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
   const secs = remaining === null ? null : Math.ceil(remaining / 1000);
 
   const moveOptions = g.phase === 'move' && g.pending && myTurn ? g.pending.options : [];
+  // Everyone (players, spectators, projector) sees which horses can move and where each would land.
+  const choices: BoardChoice[] | null = g.phase === 'move' && g.pending && !g.paused
+    ? g.pending.options.map((o) => ({ horseId: o.horseId, seat: g.players[turnTeam].seat, to: o.to, kicks: o.kicks.map((k) => k.horseId), home: o.home, exit: o.kind === 'exit' }))
+    : null;
   const boardTeams: BoardTeam[] = g.order.map((id) => {
     const p = g.players[id];
     return {
@@ -275,7 +279,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     if (horseLevel && h.progress >= g.finish) return 'Đã về đích';
     if (card.kind === 'stun' && g.players[tid].stunned) return 'Đội đã bị mất lượt';
     if (card.kind === 'barricade' && h.progress === 0) return 'Còn ở chuồng';
-    if (card.kind === 'barricade' && h.cap !== null) return 'Đã bị Thuế Khóa';
+    if (card.kind === 'barricade' && h.cap !== null) return 'Đã bị Gánh Nặng Kinh Tế';
     if (card.kind === 'push-back' && !ring(h)) return h.progress === 0 ? 'Còn ở chuồng' : 'Đang ở đường về nhà';
     if (card.kind === 'swap' && (!ring(h) || !turn.horses.some(ring))) return !turn.horses.some(ring) ? 'Đội bạn chưa có ngựa trên vòng đua' : h.progress === 0 ? 'Còn ở chuồng' : 'Đang ở đường về nhà';
     if (card.kind === 'steal' && g.players[tid].handCount === 0) return 'Đội này chưa có thẻ';
@@ -290,7 +294,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
       <main className={`shell game${projector ? ' projector' : ''}`}>
         <section className="left">
           <div className="panel board-wrap">
-            <Board teams={boardTeams} fx={fx} highlight={hover} arms={g.arms} finish={g.finish} center={<Dice dice={g.dice} rolling={rolling} />} onPickHorse={(horseId) => run({ type: 'game', action: { type: 'choose-horse', horseId } })} />
+            <Board teams={boardTeams} fx={fx} highlight={hover} onHoverHorse={myTurn ? setHover : undefined} choices={choices} arms={g.arms} finish={g.finish} center={<Dice dice={g.dice} rolling={rolling} />} onPickHorse={(horseId) => { setHover(null); run({ type: 'game', action: { type: 'choose-horse', horseId } }); }} />
             {popup && !reveal && <ResultPopup res={popup} mine={popup.teamId === meTeam} teamName={teamName} tint={tint} exitText={exitText} onClose={() => setPopup(null)} />}
             {reveal && (
               <div key={reveal.id} className="reveal" role="status">
@@ -389,10 +393,10 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
                       const h = turn.horses.find((x) => x.id === o.horseId)!;
                       return (
                         <button key={o.horseId} className="move-option" disabled={!myTurn || busy} style={{ '--c': tint(turnTeam) } as CSSProperties}
-                          onMouseEnter={() => setHover(o.horseId)} onMouseLeave={() => setHover(null)} onClick={() => run({ type: 'game', action: { type: 'choose-horse', horseId: o.horseId } })}>
+                          onMouseEnter={() => setHover(o.horseId)} onMouseLeave={() => setHover(null)} onClick={() => { setHover(null); run({ type: 'game', action: { type: 'choose-horse', horseId: o.horseId } }); }}>
                           <span className="mini-horse"><HorseIcon /></span>
                           <b>{h.name}</b>
-                          <small>{o.kind === 'exit' ? 'Xuất chuồng ra ô xuất phát' : `Ô ${o.from} → ${o.to >= g.finish ? 'ĐÍCH' : o.to}${o.capped ? ' (bị Thuế Khóa)' : ''}`}</small>
+                          <small>{o.kind === 'exit' ? 'Xuất chuồng ra ô xuất phát' : `Ô ${o.from} → ${o.to >= g.finish ? 'ĐÍCH' : o.to}${o.capped ? ' (bị Gánh Nặng Kinh Tế)' : ''}`}</small>
                           {o.kicks.length > 0 && <em className="tag kick">ĐÁ {o.kicks.length} ngựa ({o.kicks.map((k) => teamName(k.teamId)).join(', ')})</em>}
                           {o.home && <em className="tag home">🏁 VỀ ĐÍCH</em>}
                         </button>
@@ -509,7 +513,7 @@ function ResultPopup({ res, mine, teamName, tint, exitText, onClose }: {
         <div className="pop-effect">
           {res.outcome !== 'correct' ? <span>🐴 Ngựa <b>đứng yên</b>, không nhận thẻ.</span>
             : res.exited ? <span>🐴 <b>{res.horseName}</b> xuất chuồng!</span>
-            : res.horseId ? <span>🐴 <b>{res.horseName}</b> tiến <b>{res.steps} ô</b>{res.capped ? ' (bị Thuế Khóa giới hạn)' : ''}.</span>
+            : res.horseId ? <span>🐴 <b>{res.horseName}</b> tiến <b>{res.steps} ô</b>{res.capped ? ' (bị Gánh Nặng Kinh Tế giới hạn)' : ''}.</span>
             : <span>🐴 Không có ngựa nào đi được (cần {exitText} để xuất chuồng).</span>}
           {gained && <span>🃏 Nhận thẻ <b>{gained.icon} {gained.name}</b></span>}
           {res.kicked.length > 0 && <span className="kick-text">💥 ĐÁ {res.kicked.map((k) => `${k.name} của ${teamName(k.teamId)}`).join(', ')} về chuồng!</span>}

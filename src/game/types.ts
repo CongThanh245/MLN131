@@ -39,7 +39,7 @@ export interface Member { id: string; name: string }
 /** A team owns 2-3 horses. progress: 0 = in the stable, 1..RING_MAX ring, then the home lane, FINISH = home. */
 export interface Horse {
   id: string; name: string; progress: number;
-  /** This horse's next move is limited to this many steps (Thuế Khóa). */
+  /** This horse's next move is limited to this many steps (Gánh Nặng Kinh Tế). */
   cap: number | null;
 }
 
@@ -52,7 +52,7 @@ export interface PlayerState {
   /** Index into members of whoever acted last; the next turn goes to the following member. */
   actingIdx: number;
   hand: SkillCard[];
-  /** Team loses its next turn (Chia Để Trị). */
+  /** Team loses its next turn (Ngăn Cách Không Gian). */
   stunned: boolean;
   boost: number;
   /** Next roll is taken twice and the better total is kept. */

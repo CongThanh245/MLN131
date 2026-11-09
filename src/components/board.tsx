@@ -64,6 +64,8 @@ export interface BoardTeam {
   active: boolean; shield: boolean; stunned?: boolean; horses: BoardHorse[];
 }
 export interface BoardFx { id: number; kicked: string[]; at: [number, number] | null }
+/** One legal move while the acting team picks a horse: drawn as a landing marker, everything else is dimmed. */
+export interface BoardChoice { horseId: string; seat: number; to: number; kicks: string[]; home: boolean; exit: boolean }
 
 /** A knight-style horse head on a round base, drawn in the team colour. */
 export function HorseIcon() {
@@ -87,7 +89,7 @@ const PROPS: { e: string; x: number; y: number; s: number }[] = [
   { e: '🏡', x: 94, y: 90, s: 1.6 }, { e: '🌳', x: 86, y: 95, s: 1.3 }, { e: '🌼', x: 96, y: 64, s: .8 }, { e: '🪨', x: 95, y: 40, s: .9 }, { e: '🌷', x: 94, y: 52, s: .8 }
 ];
 
-export function Board({ teams, fx, center, highlight, onPickHorse, arms = DEFAULT_ARMS, finish = finishFor(arms) }: { teams: BoardTeam[]; fx?: BoardFx | null; center?: ReactNode; highlight?: string | null; onPickHorse?: (horseId: string) => void; arms?: number; finish?: number }) {
+export function Board({ teams, fx, center, highlight, onPickHorse, onHoverHorse, choices, arms = DEFAULT_ARMS, finish = finishFor(arms) }: { teams: BoardTeam[]; fx?: BoardFx | null; center?: ReactNode; highlight?: string | null; onPickHorse?: (horseId: string) => void; onHoverHorse?: (horseId: string | null) => void; choices?: BoardChoice[] | null; arms?: number; finish?: number }) {
   const colors = TEAM_COLORS.slice(0, arms);
   const ring = ringOf(arms);
   const deg = (a: number): number => (a * 180) / Math.PI;
@@ -100,6 +102,12 @@ export function Board({ teams, fx, center, highlight, onPickHorse, arms = DEFAUL
     groups.set(key, [...(groups.get(key) ?? []), h.id]);
   }
   const kicked = new Set(fx?.kicked ?? []);
+  // While a horse is being chosen: the candidates stay bright, every other horse fades back.
+  const choosing = !!choices && choices.length > 0;
+  const candidates = new Set((choices ?? []).map((c) => c.horseId));
+  const focus = choices?.find((c) => c.horseId === highlight) ?? null;
+  const doomed = new Set(focus ? focus.kicks : []);
+  const nameOf = new Map(all.map(({ h }) => [h.id, h.name.replace('Ngựa ', '')]));
 
   return (
     <div className="table-scene">
@@ -212,13 +220,26 @@ export function Board({ teams, fx, center, highlight, onPickHorse, arms = DEFAUL
             const group = groups.get(`${Math.round(x)}:${Math.round(y)}`)!;
             const dx = h.progress === 0 ? 0 : (group.indexOf(h.id) - (group.length - 1) / 2) * 10;
             return (
-              <div key={h.id} className={`pawn${h.acting && t.active ? ' active' : ''}${kicked.has(h.id) ? ' kicked' : ''}${highlight === h.id ? ' target' : ''}${h.selectable ? ' selectable' : ''}${h.progress === 0 ? ' idle' : ''}`}
+              <div key={h.id} className={`pawn${h.acting && t.active ? ' active' : ''}${kicked.has(h.id) ? ' kicked' : ''}${highlight === h.id ? ' target' : ''}${h.selectable ? ' selectable' : ''}${h.progress === 0 ? ' idle' : ''}${choosing && !candidates.has(h.id) && !doomed.has(h.id) ? ' dim' : ''}${doomed.has(h.id) ? ' doomed' : ''}`}
                 title={`${h.name} (${t.name}): ${h.progress}/${finish}`}
                 style={{ left: `${((x + dx) / VB) * 100}%`, top: `${(y / VB) * 100}%`, '--c': COLOR_HEX[t.color], zIndex: Math.round(y) } as CSSProperties}
+                onMouseEnter={candidates.has(h.id) && onHoverHorse ? () => onHoverHorse(h.id) : undefined}
+                onMouseLeave={candidates.has(h.id) && onHoverHorse ? () => onHoverHorse(null) : undefined}
                 onClick={h.selectable && onPickHorse ? () => onPickHorse(h.id) : undefined}>
                 {(h.cap ?? null) !== null && <span className="pawn-badge">🚧</span>}
                 <HorseIcon />
                 <span className="pawn-name">{h.name.replace('Ngựa ', '')}</span>
+              </div>
+            );
+          })}
+          {choosing && choices!.map((c) => {
+            const [x, y] = positionOf(c.seat, c.to, 0, finish, arms);
+            const on = focus ? focus.horseId === c.horseId : true;
+            return (
+              <div key={`dest${c.horseId}`} className={`dest-marker${focus && on ? ' focus' : ''}${focus && !on ? ' faint' : ''}${c.kicks.length ? ' kick' : ''}${c.home ? ' home' : ''}`}
+                style={{ left: `${(x / VB) * 100}%`, top: `${(y / VB) * 100}%` }}>
+                <i />
+                <b>{nameOf.get(c.horseId)}{c.exit ? ' · ra chuồng' : c.home ? ' · 🏁 đích' : c.kicks.length ? ' · 💥 đá' : ''}</b>
               </div>
             );
           })}
