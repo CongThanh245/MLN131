@@ -54,7 +54,7 @@ export const isRoomCode = (code: string): boolean => new RegExp(`^[${CODE_ALPHAB
 
 export function newRoom(code: string, title: string, options: GameOptions = {}): RoomRecord {
   return {
-    code, title: title.trim().slice(0, 60) || 'Cá Ngựa Cách Mạng', createdAt: Date.now(),
+    code, title: title.trim().slice(0, 60) || 'Cá Ngựa Gia Đình', createdAt: Date.now(),
     players: [], status: 'lobby', game: null, options: { ...options, arms: options.arms ?? DEFAULT_TEAMS }, revision: 1
   };
 }

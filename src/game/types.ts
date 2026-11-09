@@ -20,7 +20,7 @@ export interface Question {
   hint: string;
   /** One-line explanation shown after the reveal, taken from the textbook. */
   explain: string;
-  /** Page in the Chapter I extract (Giáo trình Lịch sử Đảng). */
+  /** Part of the MLN131 Chapter 7 outline (Mục 1, 2a-2d, 3a-3b, 4). */
   ref: string;
 }
 

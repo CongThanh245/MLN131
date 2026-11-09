@@ -23,7 +23,7 @@ export function PlayEntry({ initialCode = '' }: { initialCode?: string }) {
 
   return (
     <main className="shell narrow">
-      <header className="topbar"><Link href="/" className="brand"><span className="brand-mark">♞</span> CÁ NGỰA CÁCH MẠNG</Link><Link href="/" className="text-link">← Trang chủ</Link></header>
+      <header className="topbar"><Link href="/" className="brand"><span className="brand-mark">♞</span> CÁ NGỰA GIA ĐÌNH</Link><Link href="/" className="text-link">← Trang chủ</Link></header>
       <form className="panel stack join-card" onSubmit={go}>
         <p className="eyebrow">NGƯỜI CHƠI</p>
         <h1>Vào phòng chơi</h1>

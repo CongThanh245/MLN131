@@ -19,7 +19,7 @@ export function AdminHome() {
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [title, setTitle] = useState('Cá Ngựa Cách Mạng · Lớp VNR202');
+  const [title, setTitle] = useState('Cá Ngựa Gia Đình · Lớp MLN131');
   const [seconds, setSeconds] = useState(25);
   const [horses, setHorses] = useState(2);
   const [teams, setTeams] = useState(5);
@@ -52,7 +52,7 @@ export function AdminHome() {
     try { await api(`/api/admin/rooms/${code}`, 'DELETE'); void refresh(); } catch (err) { setError(err instanceof Error ? err.message : 'Không xóa được.'); }
   }
 
-  const header = <header className="topbar"><Link href="/" className="brand"><span className="brand-mark">♞</span> CÁ NGỰA CÁCH MẠNG · QUẢN TRỊ</Link>{authed ? <button className="text-link" onClick={logout}>Đăng xuất</button> : <Link href="/" className="text-link">← Trang chủ</Link>}</header>;
+  const header = <header className="topbar"><Link href="/" className="brand"><span className="brand-mark">♞</span> CÁ NGỰA GIA ĐÌNH · QUẢN TRỊ</Link>{authed ? <button className="text-link" onClick={logout}>Đăng xuất</button> : <Link href="/" className="text-link">← Trang chủ</Link>}</header>;
 
   if (authed === null) return <main className="shell narrow">{header}<p className="muted">Đang kiểm tra phiên…</p></main>;
   if (!authed) return (

@@ -37,11 +37,11 @@ export const MOVE_MS = 12_000;
 export const DEFAULT_TIME_LIMIT_MS = 18 * 60_000;
 
 export const MILESTONES = [
-  '1858 – Pháp nổ súng tấn công Đà Nẵng, mở đầu cuộc xâm lược Việt Nam.',
-  '1911 – Nguyễn Tất Thành ra đi tìm đường cứu nước.',
-  '1920 – Đại hội Tours: Nguyễn Ái Quốc tán thành Quốc tế III.',
-  '1925 – Thành lập Hội Việt Nam Cách mạng Thanh niên ở Quảng Châu.',
-  '1929 – Ba tổ chức cộng sản ra đời, đòi hỏi phải hợp nhất.'
+  'Gia đình quá độ – từ nhiều thế hệ sang gia đình hạt nhân 2 thế hệ.',
+  'Sinh đẻ chủ động, tự giác – giảm nhu cầu nhất thiết phải có con trai.',
+  'Kinh tế gia đình – từ tự cấp tự túc sang kinh tế hàng hóa, thị trường toàn cầu.',
+  'Gia đình thành đơn vị tình cảm – quan hệ vợ chồng, thế hệ biến đổi.',
+  'Bốn phương hướng – xây dựng gia đình no ấm, tiến bộ, hạnh phúc, văn minh.'
 ];
 
 /** Ring cell (clockwise) of a horse; null in the stable or the home lane. */
@@ -320,7 +320,7 @@ function applyMove(s: GameState, now: number, option: MoveOption | null): void {
   const m = Math.min(MILESTONES.length, Math.floor((lead(team) / s.finish) * (MILESTONES.length + 1)));
   if (m > s.milestones[team.teamId] && lead(team) < s.finish) {
     s.milestones[team.teamId] = m;
-    log(s, now, 'milestone', `qua mốc lịch sử: ${MILESTONES[m - 1]}`, team.teamId);
+    log(s, now, 'milestone', `qua mốc kiến thức: ${MILESTONES[m - 1]}`, team.teamId);
   }
 
   s.pending = null;

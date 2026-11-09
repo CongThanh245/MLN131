@@ -5,12 +5,12 @@ import { SKILLS } from '@/game/skills';
 export function Home() {
   return (
     <main className="shell landing">
-      <header className="topbar"><span className="brand"><span className="brand-mark">♞</span> CÁ NGỰA CÁCH MẠNG</span><span className="muted">VNR202 · Chương I · phiên bản 2</span></header>
+      <header className="topbar"><span className="brand"><span className="brand-mark">♞</span> CÁ NGỰA GIA ĐÌNH</span><span className="muted">MLN131 · Chương 7 · phiên bản 2</span></header>
       <section className="hero">
         <div>
-          <p className="eyebrow">LỊCH SỬ ĐẢNG CỘNG SẢN VIỆT NAM · ÔN TẬP THEO ĐỘI</p>
-          <h1>Đưa ngựa về đích <em>3/2/1930</em></h1>
-          <p className="lead">Sáu đội cùng đua trên một bản đồ cá ngựa. Mỗi người có một con ngựa, mỗi lượt đổ xúc xắc và trả lời một câu hỏi về sự ra đời của Đảng và Cương lĩnh chính trị đầu tiên. Đúng thì nhận <b>thẻ kỹ năng</b> để tăng tốc hoặc chặn đường đối thủ.</p>
+          <p className="eyebrow">CHỦ NGHĨA XÃ HỘI KHOA HỌC · ÔN TẬP THEO ĐỘI</p>
+          <h1>Đưa ngựa về <em>tổ ấm hạnh phúc</em></h1>
+          <p className="lead">Sáu đội cùng đua trên một bản đồ cá ngựa. Mỗi người có một con ngựa, mỗi lượt đổ xúc xắc và trả lời một câu hỏi về sự biến đổi và phương hướng xây dựng gia đình Việt Nam trong thời kỳ quá độ lên CNXH. Đúng thì nhận <b>thẻ kỹ năng</b> để tăng tốc hoặc chặn đường đối thủ.</p>
         </div>
         <div className="stack entrances">
           <Link href="/play" className="entrance player"><span className="entrance-icon">🐴</span><b>Tôi là người chơi</b><small>Nhập mã phòng, chọn đội và điều khiển ngựa của bạn.</small></Link>

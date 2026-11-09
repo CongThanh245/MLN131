@@ -1,6 +1,6 @@
-# Cá Ngựa Cách Mạng · VNR202 · phiên bản 2
+# Cá Ngựa Gia Đình · MLN131 · phiên bản 2
 
-Game cá ngựa **nhiều đội (mặc định 5, quản trị thêm/bớt được 2-6 đội)** ôn tập *Chương I – Đảng Cộng sản Việt Nam ra đời và Cương lĩnh chính trị đầu tiên (2/1930)*. Phát triển từ game thẻ bài "Đấu Trường Tri Thức" (v1, thư mục gốc của repo): v1 là 2 đội đấu máu (HP), v2 là cuộc đua 6 đội về đích.
+Game cá ngựa **nhiều đội (mặc định 5, quản trị thêm/bớt được 2-6 đội)** ôn tập *MLN131 – Chương 7, mục III: Xây dựng gia đình Việt Nam trong thời kỳ quá độ lên chủ nghĩa xã hội*. Phát triển từ game thẻ bài "Đấu Trường Tri Thức" (v1, thư mục gốc của repo): v1 là 2 đội đấu máu (HP), v2 là cuộc đua 6 đội về đích.
 
 ## Luật chơi (đã đối chiếu luật cờ cá ngựa / Ludo phổ biến)
 
@@ -13,7 +13,7 @@ Nguồn luật tham khảo: [mytour.vn](https://mytour.vn/vi/blog/bai-viet/co-du
 4. **Đá ngựa:** đáp xuống ô có ngựa đội khác (trừ 6 ô ★ an toàn) thì **ngựa đó bị đá về chuồng** (hiệu ứng "ĐÁ!"). Ngựa cùng đội đứng chung ô được. Không cần tung đúng số để về đích.
 5. **Tung thêm lượt (chỉ khi trả lời đúng):** hai viên giống nhau (đôi), đá được ngựa, hoặc đưa ngựa về đích → cùng người đó tung tiếp (tối đa 2 lần liên tiếp).
 6. **Thắng:** đội đầu tiên đưa đủ số ngựa về đích (mặc định **2**; chọn 1-3 khi tạo phòng) thắng. **Ván có giới hạn thời gian 10-20 phút** (mặc định 18, có đồng hồ ⏱ trên đầu trang, tạm dừng thì dừng đồng hồ); hết giờ, đội có nhiều ngựa về đích nhất (rồi đến tổng bước đi) thắng. Tay tối đa 5 thẻ.
-7. Ngựa đi qua mỗi chặng sẽ bật một **mốc lịch sử** (1858, 1911, 1920, 1925, 1929) lấy từ chương.
+7. Ngựa đi qua mỗi chặng sẽ bật một **mốc kiến thức** (quy mô gia đình, sinh sản, kinh tế, tình cảm, 4 phương hướng) lấy từ chương.
 
 **Nhịp ván (mô phỏng 40 ván với bot, 6 đội × 2 ngựa, ~18 giây/lượt):** trung vị 49 lượt ≈ 15 phút, p90 61 lượt ≈ 18 phút. 3 ngựa/đội: trung vị 64 lượt ≈ 19 phút. Số lượt tăng theo số đội, nên ít đội thì ván ngắn hơn; giới hạn thời gian bảo đảm không bao giờ vượt quá mức đã chọn.
 
@@ -21,16 +21,16 @@ Nguồn luật tham khảo: [mytour.vn](https://mytour.vn/vi/blog/bai-viet/co-du
 
 | Thẻ | Loại | Hiệu ứng | Gắn với nội dung bài |
 |---|---|---|---|
-| ✂️ Chia Để Trị ×3 | Chặn đối thủ | **Cả đội** của ngựa được chọn mất lượt kế tiếp | Pháp chia ba kỳ |
-| 🚧 Thuế Khóa Nặng Nề ×3 | Chặn đối thủ | Lần đi kế tiếp của **con ngựa được chọn** tối đa 3 bước | Thuế khóa, bóc lột |
-| ⏪ Đàn Áp Khởi Nghĩa ×3 | Chặn đối thủ | **Ngựa được chọn lùi 5 ô** (chỉ khi còn trên vòng đua) | Khởi nghĩa Yên Bái bị dập |
-| 🔄 Hoán Đổi Vận Mệnh ×2 | Chặn đối thủ | **Đổi chỗ** ngựa dẫn đầu vòng đua của bạn với ngựa được chọn | Đổi thay khi có đường lối đúng |
-| 🕵️ Mua Chuộc ×2 | Chặn đối thủ | **Lấy ngẫu nhiên 1 thẻ** từ tay đội của ngựa được chọn | Sarraut mua chuộc Nguyễn Ái Quốc |
-| 🚩 Đường Cách Mệnh ×3 | Tự thân | Lần đi kế tiếp **+4 bước** | Tác phẩm *Đường cách mệnh* |
-| 🎲 Nhãn Quan Sắc Bén ×2 | Tự thân | Tung hai lần, lấy tổng cao hơn | Nhãn quan chính trị sắc bén |
-| 🛡️ Chủ Nghĩa Làm Cốt ×3 | Tự thân | **Khiên**: chặn kỹ năng đối kháng kế tiếp nhắm vào mình | "Đảng muốn vững thì phải có chủ nghĩa làm cốt" |
-| 💡 Soi Sáng ×3 | Hỗ trợ khi trả lời | Mở gợi ý | |
-| 🎯 Thu Hẹp Vòng Vây ×2 | Hỗ trợ khi trả lời | Loại 2 đáp án sai | |
+| ✂️ Ngăn Cách Không Gian ×3 | Chặn đối thủ | **Cả đội** của ngựa được chọn mất lượt kế tiếp | Gia đình thu nhỏ, ngăn cách các thành viên |
+| 🚧 Gánh Nặng Kinh Tế ×3 | Chặn đối thủ | Lần đi kế tiếp của **con ngựa được chọn** tối đa 3 bước | Phân hóa giàu nghèo |
+| ⏪ Bảo Thủ, Áp Đặt ×3 | Chặn đối thủ | **Ngựa được chọn lùi 5 ô** (chỉ khi còn trên vòng đua) | Mâu thuẫn thế hệ |
+| 🔄 Đổi Vai Làm Chủ ×2 | Chặn đối thủ | **Đổi chỗ** ngựa dẫn đầu vòng đua của bạn với ngựa được chọn | 3 kiểu gia đình theo người làm chủ |
+| 🕵️ Lỏng Lẻo Hôn Nhân ×2 | Chặn đối thủ | **Lấy ngẫu nhiên 1 thẻ** từ tay đội của ngựa được chọn | Quan hệ vợ chồng lỏng lẻo hơn |
+| 🚩 Kinh Tế Hộ Gia Đình ×3 | Tự thân | Lần đi kế tiếp **+4 bước** | Phương hướng thứ hai |
+| 🎲 Kế Thừa Và Tiếp Thu ×2 | Tự thân | Tung hai lần, lấy tổng cao hơn | Phương hướng thứ ba |
+| 🛡️ Gia Đình Văn Hóa ×3 | Tự thân | **Khiên**: chặn kỹ năng đối kháng kế tiếp nhắm vào mình | Phương hướng thứ tư |
+| 💡 Ông Bà Dạy Bảo ×3 | Hỗ trợ khi trả lời | Mở gợi ý | |
+| 🎯 Chọn Lọc Giá Trị ×2 | Hỗ trợ khi trả lời | Loại 2 đáp án sai | |
 
 **Chọn mục tiêu:** khi bấm một thẻ chặn đối thủ, màn hình “Chọn mục tiêu” hiện tất cả ngựa của các đội khác (vị trí, số thẻ của đội, có khiên hay không, lý do không chọn được); rê chuột lên ngựa nào thì ngựa đó sáng lên trên bàn cờ. **Ai dùng thẻ gì** hiện cho cả phòng bằng hiệu ứng lá bài lớn giữa bàn, ô “Thẻ vừa dùng” dưới bàn và bảng “Thẻ kỹ năng đã dùng”. **Số thẻ** của mỗi đội hiện trên bàn cờ (🃏n) và trong bảng xếp hạng. Thẻ chặn đối thủ dùng **trước khi đổ xúc xắc** (1 thẻ/lượt). Thẻ hỗ trợ dùng **trong lúc trả lời**.
 

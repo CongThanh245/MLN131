@@ -14,26 +14,26 @@ export interface SkillDefinition {
 }
 
 export const SKILLS: SkillDefinition[] = [
-  { kind: 'stun', name: 'Chia Để Trị', icon: '✂️', timing: 'roll', target: 'enemy', copies: 3,
-    description: 'Cả đội của ngựa được chọn mất lượt kế tiếp.', theme: 'Pháp chia ba kỳ để phá khối đoàn kết dân tộc.' },
-  { kind: 'barricade', name: 'Thuế Khóa Nặng Nề', icon: '🚧', timing: 'roll', target: 'enemy', copies: 3,
-    description: 'Lần đi kế tiếp của ngựa được chọn tối đa 3 bước.', theme: 'Chế độ thuế khóa và bóc lột hà khắc của thực dân Pháp.' },
-  { kind: 'push-back', name: 'Đàn Áp Khởi Nghĩa', icon: '⏪', timing: 'roll', target: 'enemy', copies: 3,
-    description: 'Đẩy ngựa được chọn lùi 5 ô (chỉ khi còn trên vòng đua).', theme: 'Khởi nghĩa Yên Bái bị dập tắt nhanh chóng.' },
-  { kind: 'swap', name: 'Hoán Đổi Vận Mệnh', icon: '🔄', timing: 'roll', target: 'enemy', copies: 2,
-    description: 'Đổi chỗ ngựa dẫn đầu vòng đua của bạn với ngựa được chọn.', theme: 'Vận mệnh dân tộc có thể đổi thay khi có đường lối đúng.' },
-  { kind: 'steal', name: 'Mua Chuộc', icon: '🕵️', timing: 'roll', target: 'enemy', copies: 2,
-    description: 'Lấy ngẫu nhiên 1 thẻ kỹ năng từ tay đội của ngựa được chọn.', theme: 'Albert Sarraut nhiều lần tìm cách mua chuộc Nguyễn Ái Quốc.' },
-  { kind: 'boost', name: 'Đường Cách Mệnh', icon: '🚩', timing: 'roll', target: 'self', copies: 3,
-    description: 'Lần đi kế tiếp được cộng thêm 4 bước.', theme: 'Tác phẩm Đường cách mệnh (1927) chỉ rõ con đường, mục tiêu, lực lượng.' },
-  { kind: 'double-dice', name: 'Nhãn Quan Sắc Bén', icon: '🎲', timing: 'roll', target: 'self', copies: 2,
-    description: 'Lần đổ kế tiếp được tung hai lần, lấy tổng cao hơn.', theme: 'Nhãn quan chính trị sắc bén của Nguyễn Ái Quốc.' },
-  { kind: 'shield', name: 'Chủ Nghĩa Làm Cốt', icon: '🛡️', timing: 'roll', target: 'self', copies: 3,
-    description: 'Chặn kỹ năng đối kháng kế tiếp nhắm vào đội mình.', theme: '“Đảng muốn vững thì phải có chủ nghĩa làm cốt.”' },
-  { kind: 'hint', name: 'Soi Sáng', icon: '💡', timing: 'question', target: 'self', copies: 3,
-    description: 'Mở dòng gợi ý của câu hỏi hiện tại.', theme: 'Chủ nghĩa Mác - Lênin soi đường cho cách mạng.' },
-  { kind: 'fifty', name: 'Thu Hẹp Vòng Vây', icon: '🎯', timing: 'question', target: 'self', copies: 2,
-    description: 'Loại 2 phương án sai của câu hỏi hiện tại.', theme: 'Loại bỏ các con đường không dẫn tới giải phóng dân tộc.' }
+  { kind: 'stun', name: 'Ngăn Cách Không Gian', icon: '✂️', timing: 'roll', target: 'enemy', copies: 3,
+    description: 'Cả đội của ngựa được chọn mất lượt kế tiếp.', theme: 'Gia đình thu nhỏ tạo ngăn cách không gian giữa các thành viên.' },
+  { kind: 'barricade', name: 'Gánh Nặng Kinh Tế', icon: '🚧', timing: 'roll', target: 'enemy', copies: 3,
+    description: 'Lần đi kế tiếp của ngựa được chọn tối đa 3 bước.', theme: 'Phân hóa giàu nghèo sâu sắc giữa các gia đình.' },
+  { kind: 'push-back', name: 'Bảo Thủ, Áp Đặt', icon: '⏪', timing: 'roll', target: 'enemy', copies: 3,
+    description: 'Đẩy ngựa được chọn lùi 5 ô (chỉ khi còn trên vòng đua).', theme: 'Mâu thuẫn thế hệ: xu hướng bảo thủ, áp đặt kéo lùi sự đổi mới.' },
+  { kind: 'swap', name: 'Đổi Vai Làm Chủ', icon: '🔄', timing: 'roll', target: 'enemy', copies: 2,
+    description: 'Đổi chỗ ngựa dẫn đầu vòng đua của bạn với ngựa được chọn.', theme: 'Chồng làm chủ, vợ làm chủ hay cả hai cùng làm chủ gia đình.' },
+  { kind: 'steal', name: 'Lỏng Lẻo Hôn Nhân', icon: '🕵️', timing: 'roll', target: 'enemy', copies: 2,
+    description: 'Lấy ngẫu nhiên 1 thẻ kỹ năng từ tay đội của ngựa được chọn.', theme: 'Quan hệ vợ chồng lỏng lẻo hơn: ly hôn, ly thân, ngoại tình gia tăng.' },
+  { kind: 'boost', name: 'Kinh Tế Hộ Gia Đình', icon: '🚩', timing: 'roll', target: 'self', copies: 3,
+    description: 'Lần đi kế tiếp được cộng thêm 4 bước.', theme: 'Phương hướng thứ hai: nâng cao đời sống vật chất, kinh tế hộ gia đình.' },
+  { kind: 'double-dice', name: 'Kế Thừa Và Tiếp Thu', icon: '🎲', timing: 'roll', target: 'self', copies: 2,
+    description: 'Lần đổ kế tiếp được tung hai lần, lấy tổng cao hơn.', theme: 'Kế thừa giá trị truyền thống, tiếp thu tiến bộ của nhân loại về gia đình.' },
+  { kind: 'shield', name: 'Gia Đình Văn Hóa', icon: '🛡️', timing: 'roll', target: 'self', copies: 3,
+    description: 'Chặn kỹ năng đối kháng kế tiếp nhắm vào đội mình.', theme: 'Phong trào xây dựng gia đình văn hóa giữ vững tổ ấm.' },
+  { kind: 'hint', name: 'Ông Bà Dạy Bảo', icon: '💡', timing: 'question', target: 'self', copies: 3,
+    description: 'Mở dòng gợi ý của câu hỏi hiện tại.', theme: 'Sự dạy bảo thường xuyên của ông bà, cha mẹ.' },
+  { kind: 'fifty', name: 'Chọn Lọc Giá Trị', icon: '🎯', timing: 'question', target: 'self', copies: 2,
+    description: 'Loại 2 phương án sai của câu hỏi hiện tại.', theme: 'Gạn đục khơi trong: bỏ cái lạc hậu, giữ cái tiến bộ.' }
 ];
 
 export const skillByKind = Object.fromEntries(SKILLS.map((s) => [s.kind, s])) as Record<SkillKind, SkillDefinition>;

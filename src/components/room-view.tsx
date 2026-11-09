@@ -143,7 +143,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
   const clockMs = g0 && g0.phase !== 'finished' ? (g0.paused ? g0.timeLeft : g0.endsAt !== null ? g0.endsAt - serverNow() : null) : null;
   const header = (
     <header className="topbar">
-      <Link href={isHost ? '/admin' : '/'} className="brand"><span className="brand-mark">♞</span> CÁ NGỰA CÁCH MẠNG</Link>
+      <Link href={isHost ? '/admin' : '/'} className="brand"><span className="brand-mark">♞</span> CÁ NGỰA GIA ĐÌNH</Link>
       <div className="topbar-mid"><strong>{view.title}</strong><span>Mã phòng <b className="code">{view.code}</b>{clockMs !== null && <b className={`game-clock${clockMs < 120_000 ? ' low' : ''}`}> · ⏱ {g0?.paused ? '⏸ ' : ''}{fmtClock(clockMs)}</b>}</span></div>
       <div className="topbar-end">
         {meTeam && <span className="chip" style={{ background: tint(meTeam) }}>{teamName(meTeam)}</span>}
