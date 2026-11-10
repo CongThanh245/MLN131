@@ -317,7 +317,11 @@ test('double-dice keeps the better of two throws; hand is capped', () => {
   let n = 0;
   s = applyAction(s, 't1m1', { type: 'roll' }, 2_000, () => seq[n++] ?? 0.5, QUESTION_BANK);
   assert.deepEqual(s.dice, [6, 6]);
+  assert.deepEqual(s.diceRolls, [[1, 1], [6, 6]]);      // both throws kept so everyone can see them
   assert.equal(s.players.t1.doubleDice, false);
+  s = applyAction(s, 't1m1', { type: 'answer', index: wrongIndex(s) }, 2_001, seeded(3), QUESTION_BANK);
+  s = applyAction(s, s.actingMemberId, { type: 'roll' }, 3_000, rigged(2, 3), QUESTION_BANK);
+  assert.equal(s.diceRolls, null);                      // a normal roll clears them
   let h = newGame(2);
   for (let i = 0; i < HAND_MAX; i++) give(h, 't1', 'hint', `c${i}`);
   horse(h, 't1').progress = 3;

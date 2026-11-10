@@ -172,6 +172,7 @@ function nextTurn(s: GameState, now: number, bonus: boolean): void {
   s.phase = 'roll';
   s.skillUsed = false;
   s.dice = null;
+  s.diceRolls = null;
   s.pending = null;
   s.question = null;
   s.deadline = now + s.rollMs;
@@ -181,9 +182,11 @@ function rollDice(s: GameState, now: number, rng: Rng, bank: Question[]): void {
   const team = s.players[s.turnTeamId];
   const who = team.members.find((m) => m.id === s.actingMemberId)!.name;
   let dice = roll2(rng);
+  s.diceRolls = null;
   if (team.doubleDice) {
     team.doubleDice = false;
     const again = roll2(rng);
+    s.diceRolls = [dice, again];
     log(s, now, 'roll', `(${who}) tung hai lần: ${dice[0]}+${dice[1]} và ${again[0]}+${again[1]}, lấy ${Math.max(dice[0] + dice[1], again[0] + again[1])}.`, team.teamId);
     if (again[0] + again[1] > dice[0] + dice[1]) dice = again;
   } else log(s, now, 'roll', `(${who}) tung ${dice[0]} + ${dice[1]} = ${dice[0] + dice[1]}${dice[0] === dice[1] ? ' (đôi!)' : ''}.`, team.teamId);
@@ -325,6 +328,7 @@ function applyMove(s: GameState, now: number, option: MoveOption | null): void {
 
   s.pending = null;
   s.dice = null;
+  s.diceRolls = null;
   if (homeCount(team, s.finish) >= needed(s, team)) { finishGame(s, now, team.teamId, 'finish'); return; }
   if (bonus && s.streak < MAX_STREAK) log(s, now, 'bonus', `(${member.name}) được tung thêm một lượt!`, team.teamId);
   nextTurn(s, now, bonus);

@@ -393,6 +393,10 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
                     </>
                   : <p className="muted">Chờ {actor?.name} ({teamName(turnTeam)}) đổ xúc xắc…</p>
               )}
+              {g.diceRolls && g.phase !== 'roll' && (() => {
+                const [r1, r2] = g.diceRolls; const s1 = r1[0] + r1[1], s2 = r2[0] + r2[1];
+                return <p className="double-roll">🎲 <b>{skillByKind['double-dice'].name}</b>: tung 2 lần, <span className={s1 >= s2 ? 'win' : ''}>{r1[0]} + {r1[1]} = {s1}</span> và <span className={s2 > s1 ? 'win' : ''}>{r2[0]} + {r2[1]} = {s2}</span> → lấy <b>{Math.max(s1, s2)}</b></p>;
+              })()}
               {g.phase === 'question' && q && (
                 <div className="question">
                   <p className="q-text">{q.text}</p>

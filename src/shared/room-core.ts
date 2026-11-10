@@ -196,7 +196,7 @@ export function projectRoom(room: RoomRecord, viewer: Viewer) {
     })),
     game: g && {
       phase: g.phase, arms: g.arms, deadline: g.deadline, paused: g.paused, pausedRemaining: g.pausedRemaining, finish: g.finish,
-      order: g.order, turnTeamId: g.turnTeamId, actingMemberId: g.actingMemberId, turnNumber: g.turnNumber, dice: g.dice,
+      order: g.order, turnTeamId: g.turnTeamId, actingMemberId: g.actingMemberId, turnNumber: g.turnNumber, dice: g.dice, diceRolls: g.diceRolls ?? null,
       skillUsed: g.skillUsed, endsAt: g.endsAt, timeLeft: g.pausedLeft, timeLimitMs: g.timeLimitMs, pending: g.pending && { options: g.pending.options, outcome: g.pending.outcome }, winHome: g.winHome, exitRolls: g.exitRolls, streak: g.streak,
       deckCount: g.skillDeck.length, skillLog: g.skillLog.slice(-12),
       question: g.question && {

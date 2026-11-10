@@ -160,6 +160,8 @@ export interface GameState {
   questionDeck: string[];
   skillUsed: boolean;
   dice: [number, number] | null;
+  /** Both throws when the double-dice card was used this turn (the higher one is `dice`). */
+  diceRolls?: [[number, number], [number, number]] | null;
   pending: PendingMove | null;
   /** Whole-game clock: the game ends when it runs out (ranked by horses home). */
   timeLimitMs: number;
