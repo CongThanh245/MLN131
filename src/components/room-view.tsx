@@ -292,7 +292,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     if (horseLevel && h.progress >= g.finish) return 'Đã về đích';
     if (card.kind === 'stun' && g.players[tid].stunned) return 'Đội đã bị mất lượt';
     if (card.kind === 'barricade' && h.progress === 0) return 'Còn ở chuồng';
-    if (card.kind === 'barricade' && h.cap !== null) return 'Đã bị Gánh Nặng Kinh Tế';
+    if (card.kind === 'barricade' && h.cap !== null) return 'Đã bị thẻ Đi Chậm';
     if (card.kind === 'push-back' && !ring(h)) return h.progress === 0 ? 'Còn ở chuồng' : 'Đang ở đường về nhà';
     if (card.kind === 'swap' && (!ring(h) || !turn.horses.some(ring))) return !turn.horses.some(ring) ? 'Đội bạn chưa có ngựa trên vòng đua' : h.progress === 0 ? 'Còn ở chuồng' : 'Đang ở đường về nhà';
     if (card.kind === 'steal' && g.players[tid].handCount === 0) return 'Đội này chưa có thẻ';
@@ -428,7 +428,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
                           onMouseEnter={() => setHover(o.horseId)} onMouseLeave={() => setHover(null)} onClick={() => { setHover(null); run({ type: 'game', action: { type: 'choose-horse', horseId: o.horseId } }); }}>
                           <span className="mini-horse"><HorseIcon /></span>
                           <b>{h.name}</b>
-                          <small>{o.kind === 'exit' ? 'Xuất chuồng ra ô xuất phát' : `Ô ${o.from} → ${o.to >= g.finish ? 'ĐÍCH' : o.to}${o.capped ? ' (bị Gánh Nặng Kinh Tế)' : ''}`}</small>
+                          <small>{o.kind === 'exit' ? 'Xuất chuồng ra ô xuất phát' : `Ô ${o.from} → ${o.to >= g.finish ? 'ĐÍCH' : o.to}${o.capped ? ' (bị thẻ Đi Chậm)' : ''}`}</small>
                           {o.kicks.length > 0 && <em className="tag kick">ĐÁ {o.kicks.length} ngựa ({o.kicks.map((k) => teamName(k.teamId)).join(', ')})</em>}
                           {o.home && <em className="tag home">🏁 VỀ ĐÍCH</em>}
                         </button>
@@ -559,7 +559,7 @@ function ResultPopup({ res, mine, teamName, tint, exitText, onClose }: {
         <div className="pop-effect">
           {res.outcome !== 'correct' ? <span>🐴 Ngựa <b>đứng yên</b>, không nhận thẻ.</span>
             : res.exited ? <span>🐴 <b>{res.horseName}</b> xuất chuồng!</span>
-            : res.horseId ? <span>🐴 <b>{res.horseName}</b> tiến <b>{res.steps} ô</b>{res.capped ? ' (bị Gánh Nặng Kinh Tế giới hạn)' : ''}.</span>
+            : res.horseId ? <span>🐴 <b>{res.horseName}</b> tiến <b>{res.steps} ô</b>{res.capped ? ' (bị thẻ Đi Chậm giới hạn)' : ''}.</span>
             : <span>🐴 Không có ngựa nào đi được (cần {exitText} để xuất chuồng).</span>}
           {gained && <span>🃏 Nhận thẻ <b>{gained.icon} {gained.name}</b></span>}
           {res.kicked.length > 0 && <span className="kick-text">💥 ĐÁ {res.kicked.map((k) => `${k.name} của ${teamName(k.teamId)}`).join(', ')} về chuồng!</span>}

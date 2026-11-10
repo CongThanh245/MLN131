@@ -21,16 +21,16 @@ Nguồn luật tham khảo: [mytour.vn](https://mytour.vn/vi/blog/bai-viet/co-du
 
 | Thẻ | Loại | Hiệu ứng | Gắn với nội dung bài |
 |---|---|---|---|
-| ✂️ Ngăn Cách Không Gian ×3 | Chặn đối thủ | **Cả đội** của ngựa được chọn mất lượt kế tiếp | Gia đình thu nhỏ, ngăn cách các thành viên |
-| 🚧 Gánh Nặng Kinh Tế ×3 | Chặn đối thủ | Lần đi kế tiếp của **con ngựa được chọn** tối đa 3 bước | Phân hóa giàu nghèo |
-| ⏪ Bảo Thủ, Áp Đặt ×3 | Chặn đối thủ | **Ngựa được chọn lùi 5 ô** (chỉ khi còn trên vòng đua) | Mâu thuẫn thế hệ |
-| 🔄 Đổi Vai Làm Chủ ×2 | Chặn đối thủ | **Đổi chỗ** ngựa dẫn đầu vòng đua của bạn với ngựa được chọn | 3 kiểu gia đình theo người làm chủ |
-| 🕵️ Lỏng Lẻo Hôn Nhân ×2 | Chặn đối thủ | **Lấy ngẫu nhiên 1 thẻ** từ tay đội của ngựa được chọn | Quan hệ vợ chồng lỏng lẻo hơn |
-| 🚩 Kinh Tế Hộ Gia Đình ×3 | Tự thân | Lần đi kế tiếp **+4 bước** | Phương hướng thứ hai |
-| 🎲 Kế Thừa Và Tiếp Thu ×2 | Tự thân | Tung hai lần, lấy tổng cao hơn | Phương hướng thứ ba |
-| 🛡️ Gia Đình Văn Hóa ×3 | Tự thân | **Khiên**: chặn kỹ năng đối kháng kế tiếp nhắm vào mình | Phương hướng thứ tư |
-| 💡 Ông Bà Dạy Bảo ×3 | Hỗ trợ khi trả lời | Mở gợi ý | |
-| 🎯 Chọn Lọc Giá Trị ×2 | Hỗ trợ khi trả lời | Loại 2 đáp án sai | |
+| 💤 Mất Lượt ×3 | Chặn đối thủ | **Cả đội** của ngựa được chọn mất lượt kế tiếp | Gia đình thu nhỏ, ngăn cách các thành viên |
+| 🚧 Đi Chậm ×3 | Chặn đối thủ | Lần đi kế tiếp của **con ngựa được chọn** tối đa 3 bước | Phân hóa giàu nghèo |
+| ⏪ Lùi 5 Ô ×3 | Chặn đối thủ | **Ngựa được chọn lùi 5 ô** (chỉ khi còn trên vòng đua) | Mâu thuẫn thế hệ |
+| 🔄 Đổi Chỗ ×2 | Chặn đối thủ | **Đổi chỗ** ngựa dẫn đầu vòng đua của bạn với ngựa được chọn | 3 kiểu gia đình theo người làm chủ |
+| 🕵️ Lấy Thẻ ×2 | Chặn đối thủ | **Lấy ngẫu nhiên 1 thẻ** từ tay đội của ngựa được chọn | Quan hệ vợ chồng lỏng lẻo hơn |
+| 🚩 Tăng Tốc +4 ×3 | Tự thân | Lần đi kế tiếp **+4 bước** | Phương hướng thứ hai |
+| 🎲 Tung 2 Lần ×2 | Tự thân | Tung hai lần, lấy tổng cao hơn | Phương hướng thứ ba |
+| 🛡️ Khiên ×3 | Tự thân | **Khiên**: chặn kỹ năng đối kháng kế tiếp nhắm vào mình | Phương hướng thứ tư |
+| 💡 Gợi Ý ×3 | Hỗ trợ khi trả lời | Mở gợi ý | |
+| 🎯 Loại 2 Đáp Án ×2 | Hỗ trợ khi trả lời | Loại 2 đáp án sai | |
 
 **Chọn mục tiêu:** khi bấm một thẻ chặn đối thủ, màn hình “Chọn mục tiêu” hiện tất cả ngựa của các đội khác (vị trí, số thẻ của đội, có khiên hay không, lý do không chọn được); rê chuột lên ngựa nào thì ngựa đó sáng lên trên bàn cờ. **Ai dùng thẻ gì** hiện cho cả phòng bằng hiệu ứng lá bài lớn giữa bàn, ô “Thẻ vừa dùng” dưới bàn và bảng “Thẻ kỹ năng đã dùng”. **Số thẻ** của mỗi đội hiện trên bàn cờ (🃏n) và trong bảng xếp hạng. Thẻ chặn đối thủ dùng **trước khi đổ xúc xắc** (1 thẻ/lượt). Thẻ hỗ trợ dùng **trong lúc trả lời**.
 
