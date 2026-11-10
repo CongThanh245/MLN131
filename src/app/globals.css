@@ -295,3 +295,10 @@ code { background:var(--green-soft); padding:1px 6px; border-radius:5px; }
 .dest-marker.focus { z-index:6; } .dest-marker.focus i { border-style:solid; animation-duration:.55s; }
 .dest-marker.faint { opacity:.3; }
 @keyframes dest-pulse { 0%,100% { transform:scale(1) } 50% { transform:scale(1.14) } }
+
+/* ---- turn-start prompt: play a skill card before rolling? ---- */
+.result-pop.card-ask { --v:#d9a400; width:min(640px,100%); }
+.card-ask .ask-cards { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; }
+.card-ask .ask-cards .game-card { margin:0; }
+.card-ask .ask-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.card-ask .ask-actions .btn { min-width:0; }

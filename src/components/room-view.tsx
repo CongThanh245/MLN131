@@ -68,6 +68,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
   const [fx, setFx] = useState<BoardFx | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [reveal, setReveal] = useState<NonNullable<View['game']>['skillLog'][number] | null>(null);
+  const [askSkipped, setAskSkipped] = useState<string | null>(null);
   const [popup, setPopup] = useState<NonNullable<NonNullable<View['game']>['resolution']> | null>(null);
   const seenSkill = useRef<number | null | undefined>(undefined);
   const seenResolution = useRef<number | null | undefined>(undefined);
@@ -276,6 +277,14 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     : g.phase === 'question' ? { now: helpCards.length > 0, text: helpCards.length ? '👉 Đang trả lời: có thể dùng thẻ ❓ hỗ trợ (💡 gợi ý / 🎯 loại 2 đáp án sai).' : 'Đang trả lời: chỉ thẻ ❓ hỗ trợ dùng được lúc này (đội bạn chưa có).' }
     : { now: false, text: 'Đang chọn ngựa: không dùng thẻ được lúc này.' };
   const use = (card: SkillCard) => (skillByKind[card.kind].target === 'enemy' ? setPending(pending?.id === card.id ? null : card) : run({ type: 'game', action: { type: 'play-skill', cardId: card.id } }));
+  // Ask once per turn, right on the board, whether to play a card before rolling (people missed the side panel).
+  const turnKey = `${g.turnNumber}-${g.streak}`;
+  const askCards = rollCards.length > 0 && !pending && askSkipped !== turnKey && !g.paused;
+  const pickFromAsk = (card: SkillCard) => {
+    setAskSkipped(turnKey);
+    use(card);
+    if (skillByKind[card.kind].target === 'enemy') setTimeout(() => document.getElementById('hand-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+  };
   const horseOk = (card: SkillCard, tid: string, h: Game['players'][string]['horses'][number]): string | null => {
     const ring = (x: { progress: number }) => x.progress >= 1 && x.progress <= ringSizeFor(g.arms);
     const horseLevel = ['barricade', 'push-back', 'swap'].includes(card.kind);
@@ -298,7 +307,12 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
         <section className="left">
           <div className="panel board-wrap">
             <Board teams={boardTeams} fx={fx} highlight={hover} onHoverHorse={myTurn ? setHover : undefined} choices={choices} arms={g.arms} finish={g.finish} center={<Dice dice={g.dice} rolling={rolling} />} onPickHorse={(horseId) => { setHover(null); run({ type: 'game', action: { type: 'choose-horse', horseId } }); }} />
-            {popup && !reveal && <ResultPopup res={popup} mine={popup.teamId === meTeam} teamName={teamName} tint={tint} exitText={exitText} onClose={() => setPopup(null)} />}
+            {askCards && !reveal && (
+              <CardAsk cards={rollCards} busy={busy} onUse={pickFromAsk}
+                onRoll={() => { setAskSkipped(turnKey); run({ type: 'game', action: { type: 'roll' } }); }}
+                onLater={() => setAskSkipped(turnKey)} />
+            )}
+            {popup && !reveal && !askCards && <ResultPopup res={popup} mine={popup.teamId === meTeam} teamName={teamName} tint={tint} exitText={exitText} onClose={() => setPopup(null)} />}
             {reveal && (
               <div key={reveal.id} className="reveal" role="status">
                 <SkillCardView kind={reveal.kind} big style={{ '--rot': '0deg', '--lift': '0px' } as CSSProperties} />
@@ -413,7 +427,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
           )}
 
           {mineTeam && g.phase !== 'finished' && (
-            <div className="panel hand">
+            <div className="panel hand" id="hand-panel">
               <div className="panel-head"><h2>Thẻ kỹ năng của đội ({hand.length}/5)</h2>
                 <div className="status-icons">{mineTeam.shield && <span>🛡️ Khiên</span>}{mineTeam.boost > 0 && <span>🚩 +{mineTeam.boost}</span>}{mineTeam.doubleDice && <span>🎲 x2</span>}{mineTeam.stunned && <span>💤 đội mất lượt kế</span>}{mineTeam.horses.filter((h) => h.cap !== null).map((h) => <span key={h.id}>🚧 {h.name} tối đa {h.cap}</span>)}</div></div>
               {cardStatus.text && <p className={`card-status${cardStatus.now ? ' now' : ''}`}>{cardStatus.text}</p>}
@@ -497,6 +511,25 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
 }
 
 /** Shown to everybody in the room after each turn: was the answer right, what happened on the board. */
+/** Turn-start prompt: the cards this player may play before rolling, or roll straight away. */
+function CardAsk({ cards, busy, onUse, onRoll, onLater }: { cards: SkillCard[]; busy: boolean; onUse: (card: SkillCard) => void; onRoll: () => void; onLater: () => void }) {
+  return (
+    <div className="pop-backdrop" onClick={onLater} role="presentation">
+      <div className="result-pop card-ask" role="dialog" aria-label="Dùng thẻ kỹ năng trước khi đổ" onClick={(e) => e.stopPropagation()}>
+        <div className="pop-verdict"><span>🃏</span>DÙNG THẺ TRƯỚC KHI ĐỔ?</div>
+        <p className="pop-who">Đội bạn có <b>{cards.length} thẻ</b> dùng được ngay. Mỗi lượt dùng tối đa <b>1 thẻ</b>, phải dùng <b>trước khi đổ xúc xắc</b>. Bấm vào thẻ để dùng.</p>
+        <div className="ask-cards">
+          {cards.map((c) => <SkillCardView key={c.id} card={c} disabledReason={busy ? 'Đang xử lý…' : null} onUse={() => onUse(c)} style={{ '--rot': '0deg', '--lift': '0px' } as CSSProperties} />)}
+        </div>
+        <div className="ask-actions">
+          <button className="btn primary" disabled={busy} onClick={onRoll}>🎲 Không dùng, đổ xúc xắc luôn</button>
+          <button className="btn" onClick={onLater}>Để tôi xem lại</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ResultPopup({ res, mine, teamName, tint, exitText, onClose }: {
   res: NonNullable<Game['resolution']>; mine: boolean; teamName: (id?: string) => string; tint: (id?: string) => string; exitText: string; onClose: () => void;
 }) {
