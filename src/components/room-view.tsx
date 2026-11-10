@@ -72,6 +72,11 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
   const seenSkill = useRef<number | null | undefined>(undefined);
   const seenResolution = useRef<number | null | undefined>(undefined);
   const wasSeated = useRef(false);
+  // One-shot timers for the reveal/popup/kick effects. They must NOT be cleared when the room view
+  // refreshes (it does on every poll), only on unmount; otherwise the overlay never goes away.
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  const later = (fn: () => void, ms: number) => { timers.current = [...timers.current.slice(-20), setTimeout(fn, ms)]; };
   const [kicked, setKicked] = useState(false);
   useEffect(() => { try { setPlayerName(localStorage.getItem('vnr_player') ?? ''); } catch { /* storage unavailable */ } }, []);
   const rename = (v: string) => { setPlayerName(v); try { localStorage.setItem('vnr_player', v); } catch { /* ignore */ } };
@@ -89,9 +94,8 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     const idx = Math.max(0, team.horses.findIndex((h) => h.id === res.horseId));
     setFx({ id: res.id, kicked: res.kicked.map((k) => k.horseId), at: res.kicked.length ? positionOf(team.seat, res.to, idx, view.game.finish, view.game.arms) : null });
     setPopup(res);
-    const t = setTimeout(() => setFx(null), 2200);
-    const p = setTimeout(() => setPopup((cur) => (cur?.id === res.id ? null : cur)), 7000);
-    return () => { clearTimeout(t); clearTimeout(p); };
+    later(() => setFx((cur) => (cur?.id === res.id ? null : cur)), 2200);
+    later(() => setPopup((cur) => (cur?.id === res.id ? null : cur)), 7000);
   }, [res, view?.game]);
 
   // Reveal every skill card played to the whole table for a few seconds (not the ones already in the log at load).
@@ -103,8 +107,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     if (!last || last.id === seenSkill.current) return;
     seenSkill.current = last.id;
     setReveal(last);
-    const t = setTimeout(() => setReveal(null), 3600);
-    return () => clearTimeout(t);
+    later(() => setReveal((cur) => (cur?.id === last.id ? null : cur)), 3600);
   }, [skillLog]);
 
   const seatedNow = !!view && view.teams.some((tm) => tm.members.some((m) => view.viewer.role === 'team' && m.id === view.viewer.playerId));
