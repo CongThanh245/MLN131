@@ -344,7 +344,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
               <h1 style={{ color: tint(g.winnerId ?? undefined) }}>🏆 {teamName(g.winnerId ?? undefined)}</h1>
               <ol className="rank">
                 {g.ranking!.map((id, i) => (
-                  <li key={id}><b>{i + 1}</b><i style={{ background: tint(id) }} />{teamName(id)}<span>{g.players[id].home}/{Math.min(g.winHome, g.players[id].horses.length)} ngựa về đích · đúng {g.players[id].correct}/{g.players[id].answered}</span></li>
+                  <li key={id}><b>{i + 1}</b><i style={{ background: tint(id) }} /><span className="rank-team">{teamName(id)}<small>{g.players[id].members.map((m) => m.name).join(', ') || 'Không còn ai'}</small></span><span>{g.players[id].home}/{Math.min(g.winHome, g.players[id].horses.length)} ngựa về đích · đúng {g.players[id].correct}/{g.players[id].answered}</span></li>
                 ))}
               </ol>
               {isHost && <button className="btn primary" onClick={() => run({ type: 'rematch' })}>Chơi ván mới với các đội này</button>}
@@ -460,7 +460,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
               return (
                 <div key={id} className={`score${id === turnTeam ? ' turn' : ''}`}>
                   <i style={{ background: tint(id) }} />
-                  <span className="score-name">{teamName(id)}{id === meTeam ? ' (đội bạn)' : ''}<small>{p.horses.length} ngựa · {p.members.length} người</small></span>
+                  <span className="score-name">{teamName(id)}{id === meTeam ? ' (đội bạn)' : ''}<small title={p.members.map((m) => m.name).join(', ')}>{p.members.map((m) => m.name).join(', ') || 'Không còn ai'} · {p.horses.length} ngựa</small></span>
                   <span className="bar"><span style={{ width: `${(p.lead / g.finish) * 100}%`, background: tint(id) }} /></span>
                   <span className="score-num">🏁 {p.home}/{need}</span>
                   <span className="score-hand" title="Số thẻ kỹ năng đang giữ"><span className="score-cards">{Array.from({ length: Math.min(p.handCount, 5) }, (_, i) => <i key={i} className="card-back" />)}</span><b>{p.handCount}</b> thẻ{p.shield ? ' 🛡️' : ''}</span>

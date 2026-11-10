@@ -302,3 +302,8 @@ code { background:var(--green-soft); padding:1px 6px; border-radius:5px; }
 .card-ask .ask-cards .game-card { margin:0; }
 .card-ask .ask-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
 .card-ask .ask-actions .btn { min-width:0; }
+
+/* team rows also list who is in the team */
+.rank-team { display:flex; flex-direction:column; min-width:0; } .rank .rank-team { margin-left:0; font-size:inherit; color:inherit; }
+.rank-team small { font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.score-name { min-width:0; } .score-name small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
