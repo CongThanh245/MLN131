@@ -266,6 +266,8 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
     if (def.timing === 'question' && g.phase !== 'question') return 'Chỉ dùng khi đang trả lời câu hỏi';
     return null;
   };
+  // A rival-targeting card waiting for its target; dropped automatically once the roll phase is over.
+  const picking = pending && myTurn && g.phase === 'roll' && !g.skillUsed ? pending : null;
   const rollCards = myTurn && g.phase === 'roll' && !g.skillUsed ? hand.filter((c) => skillByKind[c.kind].timing === 'roll') : [];
   const helpCards = hand.filter((c) => skillByKind[c.kind].timing === 'question');
   const cardStatus = !hand.length ? { now: false, text: '' }
@@ -279,11 +281,10 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
   const use = (card: SkillCard) => (skillByKind[card.kind].target === 'enemy' ? setPending(pending?.id === card.id ? null : card) : run({ type: 'game', action: { type: 'play-skill', cardId: card.id } }));
   // Ask once per turn, right on the board, whether to play a card before rolling (people missed the side panel).
   const turnKey = `${g.turnNumber}-${g.streak}`;
-  const askCards = rollCards.length > 0 && !pending && askSkipped !== turnKey && !g.paused;
+  const askCards = rollCards.length > 0 && !picking && askSkipped !== turnKey && !g.paused;
   const pickFromAsk = (card: SkillCard) => {
     setAskSkipped(turnKey);
     use(card);
-    if (skillByKind[card.kind].target === 'enemy') setTimeout(() => document.getElementById('hand-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
   };
   const horseOk = (card: SkillCard, tid: string, h: Game['players'][string]['horses'][number]): string | null => {
     const ring = (x: { progress: number }) => x.progress >= 1 && x.progress <= ringSizeFor(g.arms);
@@ -312,7 +313,16 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
                 onRoll={() => { setAskSkipped(turnKey); run({ type: 'game', action: { type: 'roll' } }); }}
                 onLater={() => setAskSkipped(turnKey)} />
             )}
-            {popup && !reveal && !askCards && <ResultPopup res={popup} mine={popup.teamId === meTeam} teamName={teamName} tint={tint} exitText={exitText} onClose={() => setPopup(null)} />}
+            {picking && !reveal && (
+              <div className="pop-backdrop picker-backdrop" onClick={() => { setPending(null); setHover(null); }} role="presentation">
+                <div className="picker-pop" onClick={(e) => e.stopPropagation()}>
+                  <TargetPicker card={picking} game={g} meTeam={meTeam!} tint={tint} teamName={teamName} horseOk={horseOk} busy={busy}
+                    onHover={setHover} onCancel={() => { setPending(null); setHover(null); }}
+                    onPick={(horseId) => { setHover(null); run({ type: 'game', action: { type: 'play-skill', cardId: picking.id, targetHorseId: horseId } }); }} />
+                </div>
+              </div>
+            )}
+            {popup && !reveal && !askCards && !picking && <ResultPopup res={popup} mine={popup.teamId === meTeam} teamName={teamName} tint={tint} exitText={exitText} onClose={() => setPopup(null)} />}
             {reveal && (
               <div key={reveal.id} className="reveal" role="status">
                 <SkillCardView kind={reveal.kind} big style={{ '--rot': '0deg', '--lift': '0px' } as CSSProperties} />
@@ -378,7 +388,8 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
                 myTurn
                   ? <>
                       {rollCards.length > 0 && <p className="card-now">🃏 Bạn có <b>{rollCards.length} thẻ 🎲</b> dùng được <b>trước khi đổ</b> (tối đa 1 thẻ/lượt): {rollCards.map((c) => `${skillByKind[c.kind].icon} ${skillByKind[c.kind].name}`).join(', ')}. Bấm thẻ ở khung “Thẻ kỹ năng của đội” bên dưới, hoặc đổ luôn.</p>}
-                      <button className="btn primary big" disabled={busy} onClick={() => run({ type: 'game', action: { type: 'roll' } })}>🎲 Đổ xúc xắc</button>
+                      {picking && <p className="card-now">🎯 Đang dùng thẻ <b>{skillByKind[picking.kind].icon} {skillByKind[picking.kind].name}</b>: chọn ngựa mục tiêu trên bàn cờ trước, hoặc <button className="text-link" onClick={() => { setPending(null); setHover(null); }}>hủy thẻ</button> để đổ luôn.</p>}
+                      <button className="btn primary big" disabled={busy || !!picking} onClick={() => run({ type: 'game', action: { type: 'roll' } })}>🎲 Đổ xúc xắc</button>
                     </>
                   : <p className="muted">Chờ {actor?.name} ({teamName(turnTeam)}) đổ xúc xắc…</p>
               )}
@@ -442,12 +453,7 @@ export function RoomView({ code, mode = 'player' }: { code: string; mode?: RoomM
                 </ol>
               </details>
               {hand.length === 0 ? <p className="muted">Chưa có thẻ. Trả lời đúng để đội nhận thẻ kỹ năng mới.</p> : (
-                <div className="hand-fan">{hand.map((c, i) => { const off = i - (hand.length - 1) / 2; return <SkillCardView key={c.id} card={c} disabledReason={reason(c)} selected={pending?.id === c.id} onUse={() => use(c)} style={{ '--rot': `${off * 4}deg`, '--lift': `${Math.abs(off) * 7}px` } as CSSProperties} />; })}</div>
-              )}
-              {pending && (
-                <TargetPicker card={pending} game={g} meTeam={meTeam!} tint={tint} teamName={teamName} horseOk={horseOk} busy={busy}
-                  onHover={setHover} onCancel={() => { setPending(null); setHover(null); }}
-                  onPick={(horseId) => { setHover(null); run({ type: 'game', action: { type: 'play-skill', cardId: pending.id, targetHorseId: horseId } }); }} />
+                <div className="hand-fan">{hand.map((c, i) => { const off = i - (hand.length - 1) / 2; return <SkillCardView key={c.id} card={c} disabledReason={reason(c)} selected={picking?.id === c.id} onUse={() => use(c)} style={{ '--rot': `${off * 4}deg`, '--lift': `${Math.abs(off) * 7}px` } as CSSProperties} />; })}</div>
               )}
             </div>
           )}
